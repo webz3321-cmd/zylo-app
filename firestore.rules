@@ -1,0 +1,94 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- HELPERS ---
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isEmailVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+    
+    function userEmail() {
+      return request.auth.token.email.lower();
+    }
+
+    function isAdmin() {
+      return isEmailVerified() && (
+        userEmail() == 'webz3321@gmail.com' || 
+        exists(/databases/$(database)/documents/authorized_admins/$(userEmail()))
+      );
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // --- GLOBAL DENY ---
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- COLLECTIONS ---
+
+    // Authorized Admins: Anyone can read their own status, only admins can manage
+    match /authorized_admins/{email} {
+      allow get: if isEmailVerified() && userEmail() == email.lower();
+      allow list, write: if isAdmin();
+    }
+
+    // Products: Public read, Admin write
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Categories: Public read, Admin write
+    match /rich_categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Orders: Owner read/create, Admin manage
+    match /orders/{orderId} {
+      allow create: if isEmailVerified();
+      allow read: if isEmailVerified() && (resource.data.userEmail.lower() == userEmail() || isAdmin());
+      allow update, delete: if isAdmin();
+    }
+
+    // Users: Owner and Admin access
+    match /users/{userId} {
+      allow read, write: if isEmailVerified() && (isOwner(userId) || isAdmin());
+    }
+
+    // Reviews: Public read, Verified user create
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isEmailVerified();
+      allow update, delete: if isEmailVerified() && (isOwner(resource.data.userId) || isAdmin());
+    }
+
+    // Coupons: Public read (for validation), Admin write
+    match /coupons/{couponId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Offers & Hero Slides: Public read, Admin write
+    match /offers/{offerId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /hero_slides/{slideId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}
