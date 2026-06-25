@@ -165,7 +165,7 @@
       "schema": "Offer",
       "description": "Collection of marketing offers."
     },
-    "/hero_slides/{slideId}": {
+    "/hero/{slideId}": {
       "schema": "HeroSlide",
       "description": "Collection of hero slider slides."
     },

@@ -9,7 +9,7 @@ service cloud.firestore {
     }
     
     function isEmailVerified() {
-      return isSignedIn() && request.auth.token.email_verified == true;
+      return isSignedIn() && request.auth.token.email != null;
     }
     
     function userEmail() {
@@ -86,7 +86,7 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
-    match /hero_slides/{slideId} {
+    match /hero/{slideId} {
       allow read: if true;
       allow write: if isAdmin();
     }
