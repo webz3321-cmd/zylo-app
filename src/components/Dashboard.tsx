@@ -246,7 +246,7 @@ export default function Dashboard({ currentUser, onBackToStore, onGoToMyOrders, 
   };
 
   return (
-    <div id="dashboard-wrapper" className="min-h-screen py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-12">
+    <div id="dashboard-wrapper" className="min-h-screen pt-44 pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-12">
       {/* Dashboard Nav/Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-8">
         <div>

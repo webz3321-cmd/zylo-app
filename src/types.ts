@@ -139,6 +139,9 @@ export interface SiteSettings {
   faviconUrl: string;
   brandName: string;
   aboutContent?: string;
+  supportPhone?: string;
+  supportWhatsApp?: string;
+  supportInstagram?: string;
 }
 
 export interface FAQItem {

@@ -11,6 +11,7 @@ import {
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import QRCode from 'qrcode';
+import { ZyloLogo } from './ZyloLogo';
 
 export default function AdminDashboard({ onBackToStore }: { onBackToStore: () => void }) {
   const [faqItems, setFaqItems] = useState<FAQItem[]>([]);
@@ -65,6 +66,7 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
   
   // Notification alert
   const [notif, setNotif] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; type: 'product' | 'category' } | null>(null);
 
   // Products state form
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -94,46 +96,35 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
     badge: '', title: '', description: '', image: '', buttonText: 'SHOP NOW', link: '/shop', isActive: true
   });
 
+  const [isLoaded, setIsLoaded] = useState(false);
+
   useEffect(() => {
     loadAllAdminData();
   }, []);
 
-  useEffect(() => {
-    if (products.length > 0 && availableCategories.length > 0) {
-      const extracted = Array.from(new Set(products.map(p => p.category).filter(Boolean))) as string[];
-      const missing = extracted.filter(catName => !availableCategories.some(c => c.name.toLowerCase() === catName.toLowerCase()));
-      if (missing.length > 0) {
-        const newCats: Category[] = missing.map(name => ({
-          id: name.toLowerCase().replace(/\s+/g, '-'),
-          name,
-          image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&q=80&w=300',
-          description: 'Newly discovered masterpiece selection.'
-        }));
-        setAvailableCategories(prev => [...prev, ...newCats]);
-        newCats.forEach(c => EcommerceService.saveRichCategory(c));
-      }
-    }
-  }, [products, availableCategories]);
-
   const loadAllAdminData = async () => {
-    const pList = await EcommerceService.getProducts();
-    const oList = await EcommerceService.getOrders();
-    const cList = await EcommerceService.getCoupons();
-    const rList = await EcommerceService.getReviews();
-    const cats = await EcommerceService.getRichCategories();
-    const offList = await EcommerceService.getOffers();
-    const heroList = await EcommerceService.getHeroSlides();
-    const adminList = await EcommerceService.getAuthorizedAdmins();
-    const settings = await EcommerceService.getSiteSettings();
-    setProducts(pList);
-    setOrders(oList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-    setCoupons(cList);
-    setReviews(rList);
-    setAvailableCategories(cats);
-    setOffers(offList);
-    setHeroSlides(heroList);
-    setAuthorizedAdmins(adminList);
-    setSiteSettings(settings);
+    try {
+      const pList = await EcommerceService.getProducts();
+      const oList = await EcommerceService.getOrders();
+      const cList = await EcommerceService.getCoupons();
+      const rList = await EcommerceService.getReviews();
+      const cats = await EcommerceService.getRichCategories();
+      const offList = await EcommerceService.getOffers();
+      const heroList = await EcommerceService.getHeroSlides();
+      const adminList = await EcommerceService.getAuthorizedAdmins();
+      const settings = await EcommerceService.getSiteSettings();
+      setProducts(pList);
+      setOrders(oList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+      setCoupons(cList);
+      setReviews(rList);
+      setAvailableCategories(cats);
+      setOffers(offList);
+      setHeroSlides(heroList);
+      setAuthorizedAdmins(adminList);
+      setSiteSettings(settings);
+    } finally {
+      setIsLoaded(true);
+    }
   };
 
   const [adminEmailForm, setAdminEmailForm] = useState('');
@@ -184,7 +175,13 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
 
     setCategoryForm({ name: '', image: '', description: '' });
     setEditingCategory(null);
-    showNotification(editingCategory ? `Collection "${name}" updated successfully.` : `Collection "${name}" designed successfully.`);
+    const msg = editingCategory ? `Category "${name}" updated successfully in website and database!` : `Category "${name}" added successfully in website and database!`;
+    showNotification(msg);
+    try {
+      alert(msg);
+    } catch (err) {
+      console.warn("window.alert blocked:", err);
+    }
   };
 
   // --- PRODUCTS CONTROLLER ---
@@ -226,7 +223,13 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
       isTrending: false, isBestSeller: false
     });
     loadAllAdminData();
-    showNotification(editingProduct ? 'Masterpiece updated in registry.' : 'New masterpiece catalogued.');
+    const msg = editingProduct ? 'Product updated successfully in website and database!' : 'Product added successfully in website and database!';
+    showNotification(msg);
+    try {
+      alert(msg);
+    } catch (err) {
+      console.warn("window.alert blocked:", err);
+    }
   };
 
   const handleEditProductClick = (p: Product) => {
@@ -234,10 +237,33 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
     setProductForm({ ...p });
   };
 
-  const handleDeleteProduct = async (id: string) => {
-    await EcommerceService.deleteProduct(id);
-    loadAllAdminData();
-    showNotification('Product removed from catalog.');
+  const handleDeleteProduct = (id: string) => {
+    const prod = products.find(p => p.id === id);
+    if (prod) {
+      setDeleteConfirm({
+        id,
+        name: prod.name,
+        type: 'product'
+      });
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirm) return;
+    const { id, name, type } = deleteConfirm;
+    setDeleteConfirm(null);
+
+    if (type === 'product') {
+      setProducts(prev => prev.filter(p => p.id !== id));
+      await EcommerceService.deleteProduct(id);
+      loadAllAdminData();
+      showNotification(`Product "${name}" deleted successfully from website and database.`);
+    } else if (type === 'category') {
+      setAvailableCategories(prev => prev.filter(c => c.id !== id));
+      await EcommerceService.deleteCategory(id);
+      loadAllAdminData();
+      showNotification(`Category "${name}" deleted successfully from website and database.`);
+    }
   };
 
   const handleAddVariantToForm = () => {
@@ -629,7 +655,44 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
   const chartData = Object.values(salesHistoryMap);
 
   return (
-    <div id="admin-dashboard-container" className="min-h-screen py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-10">
+    <div id="admin-dashboard-container" className="min-h-screen pt-44 pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-10">
+      {/* Custom Deletion Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-neutral-900 border border-red-500/30 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 transform animate-in zoom-in-95 duration-300">
+            <div className="flex items-center gap-3 text-red-500">
+              <AlertTriangle className="w-8 h-8 animate-pulse shrink-0" />
+              <h3 className="text-xl font-sans font-light tracking-tight text-white uppercase">
+                Confirm <span className="text-red-500 font-bold">Deletion</span>
+              </h3>
+            </div>
+            
+            <p className="text-sm text-gray-300 leading-relaxed font-sans">
+              Are you sure you want to delete the {deleteConfirm.type} <span className="text-white font-semibold">"{deleteConfirm.name}"</span>?
+              <br /><br />
+              <span className="text-xs text-red-400 font-mono uppercase tracking-wider">
+                ⚠️ Warning: This action cannot be undone and will permanently remove this item from both the website and the database.
+              </span>
+            </p>
+
+            <div className="flex gap-3 justify-end pt-2">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 text-xs font-mono tracking-widest uppercase transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-mono tracking-widest uppercase transition-all shadow-[0_0_15px_rgba(220,38,38,0.25)] hover:shadow-[0_0_20px_rgba(220,38,38,0.4)] cursor-pointer"
+              >
+                Permanently Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Admin Title Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-8">
         <div>
@@ -843,7 +906,13 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
                             setAvailableCategories(prev => [...prev, newCategoryObj]);
                           }
                           setProductForm(prev => ({ ...prev, category: formatted }));
-                          showNotification(`Category "${formatted}" added.`);
+                          const msg = `Category "${formatted}" added successfully in website and database!`;
+                          showNotification(msg);
+                          try {
+                            alert(msg);
+                          } catch (err) {
+                            console.warn("window.alert blocked:", err);
+                          }
                         }
                       }}
                       className="text-[9px] text-amber-500 hover:text-amber-400 uppercase font-mono cursor-pointer flex items-center gap-0.5"
@@ -1586,10 +1655,12 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
                             <Edit className="w-3.5 h-3.5 text-amber-500" />
                           </button>
                           <button
-                            onClick={async () => {
-                              await EcommerceService.deleteCategory(cat.id);
-                              setAvailableCategories(prev => prev.filter(c => c.id !== cat.id));
-                              showNotification(`Boutique collection "${cat.name}" retired successfully.`);
+                            onClick={() => {
+                              setDeleteConfirm({
+                                id: cat.id,
+                                name: cat.name,
+                                type: 'category'
+                              });
                             }}
                             className="p-1.5 bg-white/5 hover:bg-red-950/40 text-white rounded-lg transition-all cursor-pointer border border-white/10 group hover:border-red-500/30"
                             title="Retire Collection"
@@ -2114,6 +2185,33 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
                     className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500/50 resize-none"
                   />
                 </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono text-gray-400 tracking-wider block uppercase">Support Phone</label>
+                  <input
+                    type="tel"
+                    value={siteSettings.supportPhone || ''}
+                    onChange={(e) => setSiteSettings({...siteSettings, supportPhone: e.target.value})}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500/50"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono text-gray-400 tracking-wider block uppercase">Support WhatsApp</label>
+                  <input
+                    type="text"
+                    value={siteSettings.supportWhatsApp || ''}
+                    onChange={(e) => setSiteSettings({...siteSettings, supportWhatsApp: e.target.value})}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500/50"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono text-gray-400 tracking-wider block uppercase">Support Instagram ID</label>
+                  <input
+                    type="text"
+                    value={siteSettings.supportInstagram || ''}
+                    onChange={(e) => setSiteSettings({...siteSettings, supportInstagram: e.target.value})}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500/50"
+                  />
+                </div>
 
                 <button
                   type="submit"
@@ -2132,10 +2230,10 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
               <div className="space-y-4">
                 <p className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Main Header Logo</p>
                 <div className="bg-black/50 border border-white/5 rounded-2xl p-12 flex items-center justify-center">
-                  {siteSettings.logoUrl ? (
+                  {siteSettings.logoUrl && siteSettings.logoUrl !== 'https://images.unsplash.com/photo-1583391733956-6c7827447678?auto=format&fit=crop&q=80&w=100' ? (
                     <img src={siteSettings.logoUrl} alt="Logo Preview" className="h-12 object-contain" />
                   ) : (
-                    <div className="w-12 h-12 bg-white/5 rounded-full animate-pulse" />
+                    <ZyloLogo className="h-12 text-white" />
                   )}
                 </div>
               </div>

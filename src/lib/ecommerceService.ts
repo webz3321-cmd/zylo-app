@@ -74,6 +74,8 @@ const USER_KEY = 'zylo_user';
 const CART_KEY = 'zylo_cart';
 const WISHLIST_KEY = 'zylo_wishlist';
 const SETTINGS_KEY = 'zylo_settings';
+const DELETED_PRODUCTS_KEY = 'zylo_deleted_product_ids';
+const DELETED_CATEGORIES_KEY = 'zylo_deleted_category_ids';
 
 // Dual-mode Helper: Check if Firestore is active and reachable
 async function isFirestoreActive(): Promise<boolean> {
@@ -99,8 +101,21 @@ function initLocalStore() {
   if (!localStorage.getItem(ORDERS_KEY)) {
     localStorage.setItem(ORDERS_KEY, JSON.stringify([]));
   }
-  if (!localStorage.getItem(REVIEWS_KEY)) {
-    // Initial reviews seed
+  const existingReviewsRaw = localStorage.getItem(REVIEWS_KEY);
+  let needsUpgrade = false;
+  if (existingReviewsRaw) {
+    try {
+      const parsed = JSON.parse(existingReviewsRaw);
+      if (parsed.length <= 2 || !parsed.some((r: any) => r.images && r.images.length > 0)) {
+        needsUpgrade = true;
+      }
+    } catch {
+      needsUpgrade = true;
+    }
+  }
+
+  if (!existingReviewsRaw || needsUpgrade) {
+    // Initial reviews seed with high-quality real product photos for premium look
     const initialReviews: Review[] = [
       {
         id: "rev-1",
@@ -108,9 +123,10 @@ function initLocalStore() {
         userId: "user-1",
         userName: "Aarav Sharma",
         rating: 5,
-        title: "Great quality",
-        comment: "The watch is very well made and looks amazing. Highly recommended.",
+        title: "Masterpiece of Horology!",
+        comment: "The weight and luster of the obsidian steel casing are breathtaking. The Swiss movement is silent and absolutely flawless. Hands down the centerpiece of my collection.",
         date: "2026-05-12",
+        images: ["https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=800"],
         verified: true,
         likes: 18
       },
@@ -120,11 +136,38 @@ function initLocalStore() {
         userId: "user-2",
         userName: "Priya Singh",
         rating: 5,
-        title: "Amazing fragrance",
-        comment: "This has become my favorite perfume. Long lasting and smells very high-end.",
+        title: "Sublime Mysore Sandalwood",
+        comment: "This has become my signature olfactive essence. Extremely long-lasting dry down with robust cardamom and iris notes. Truly luxurious presentation in the heavy crystal decanter.",
         date: "2026-06-01",
+        images: ["https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&q=80&w=800"],
         verified: true,
         likes: 34
+      },
+      {
+        id: "rev-3",
+        productId: "prod-3",
+        userId: "user-3",
+        userName: "Kabir Mehta",
+        rating: 5,
+        title: "Exceptional Saffiano Leather",
+        comment: "The Saffiano cross-grain leather feels incredibly premium and resilient. I took it on a trans-Atlantic trip and it came back looking pristine. Hardware is stunning.",
+        date: "2026-06-10",
+        images: ["https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&q=80&w=800"],
+        verified: true,
+        likes: 12
+      },
+      {
+        id: "rev-4",
+        productId: "prod-4",
+        userId: "user-4",
+        userName: "Ananya Iyer",
+        rating: 5,
+        title: "Monaco Classic Distinction",
+        comment: "Beautiful gold filigree details along the temples. The polarized lenses are crystal clear under harsh Mediterranean sun. Comes in an exquisite leather magnetic hard case.",
+        date: "2026-06-15",
+        images: ["https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&q=80&w=800"],
+        verified: true,
+        likes: 21
       }
     ];
     localStorage.setItem(REVIEWS_KEY, JSON.stringify(initialReviews));
@@ -162,35 +205,68 @@ function initLocalStore() {
 initLocalStore();
 
 export const EcommerceService = {
+  // Helper to check if initial seed was done to prevent re-seeding empty database collections
+  async hasBeenSeeded(key: string): Promise<boolean> {
+    if (!db) return false;
+    try {
+      const seedDoc = await getDoc(doc(db, 'settings', 'seed_status'));
+      if (seedDoc.exists()) {
+        const data = seedDoc.data();
+        return !!data[key];
+      }
+    } catch (e) {
+      console.warn("Error checking seed status:", e);
+    }
+    return false;
+  },
+
+  async setSeeded(key: string): Promise<void> {
+    if (!db) return;
+    try {
+      await setDoc(doc(db, 'settings', 'seed_status'), { [key]: true }, { merge: true });
+    } catch (e) {
+      console.warn("Error setting seed status:", e);
+    }
+  },
+
   // ----------------------------------------------------
   // PRODUCTS SERVICE
   // ----------------------------------------------------
   async getProducts(): Promise<Product[]> {
+    let fetchedProducts: Product[] = [];
     try {
       if (db) {
         const querySnapshot = await getDocs(collection(db, 'products'));
-        if (!querySnapshot.empty) {
-          const products: Product[] = [];
-          querySnapshot.forEach((doc) => {
-            products.push({ id: doc.id, ...doc.data() } as Product);
-          });
-          return products;
-        } else {
-          // Empty firestore collection - seed it with initial mock data
+        const products: Product[] = [];
+        querySnapshot.forEach((doc) => {
+          products.push({ id: doc.id, ...doc.data() } as Product);
+        });
+
+        const isSeeded = await this.hasBeenSeeded('products');
+        if (products.length === 0 && !isSeeded) {
+          // Empty firestore collection and has never been seeded before -> seed it with initial mock data
           const seedProducts = INITIAL_PRODUCTS;
           for (const p of seedProducts) {
             await setDoc(doc(db, 'products', p.id), p);
           }
-          return seedProducts;
+          await this.setSeeded('products');
+          fetchedProducts = seedProducts;
+        } else {
+          fetchedProducts = products;
         }
+        // Always sync successfully fetched products to local storage to prevent deleted items from restoring
+        localStorage.setItem(PRODUCTS_KEY, JSON.stringify(fetchedProducts));
       }
     } catch (e) {
       console.warn("Firestore products fetch failed. Utilizing localStorage backup.", e);
     }
     
-    // LocalStorage Fallback
-    const localData = localStorage.getItem(PRODUCTS_KEY);
-    return localData ? JSON.parse(localData) : INITIAL_PRODUCTS;
+    if (fetchedProducts.length === 0) {
+      const localData = localStorage.getItem(PRODUCTS_KEY);
+      fetchedProducts = localData ? JSON.parse(localData) : [...INITIAL_PRODUCTS];
+    }
+
+    return fetchedProducts;
   },
 
   async saveProduct(product: Product): Promise<void> {
@@ -202,8 +278,9 @@ export const EcommerceService = {
       console.error("Firestore save product failed:", e);
     }
     
-    // Always sync locally
-    const products = await this.getProducts();
+    // Always sync locally using localStorage directly to avoid stale Firestore reads
+    const localData = localStorage.getItem(PRODUCTS_KEY);
+    const products: Product[] = localData ? JSON.parse(localData) : [...INITIAL_PRODUCTS];
     const index = products.findIndex(p => p.id === product.id);
     if (index >= 0) {
       products[index] = product;
@@ -222,7 +299,8 @@ export const EcommerceService = {
       console.error("Firestore delete product failed:", e);
     }
 
-    const products = await this.getProducts();
+    const localData = localStorage.getItem(PRODUCTS_KEY);
+    const products: Product[] = localData ? JSON.parse(localData) : [...INITIAL_PRODUCTS];
     const updated = products.filter(p => p.id !== productId);
     localStorage.setItem(PRODUCTS_KEY, JSON.stringify(updated));
   },
@@ -567,62 +645,36 @@ export const EcommerceService = {
   },
 
   async getRichCategories(): Promise<Category[]> {
-    const defaultCats: Category[] = [
-      {
-        id: 'timepieces',
-        name: 'Timepieces',
-        image: 'https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?auto=format&fit=crop&q=80&w=300',
-        description: 'Masterpieces of horology designed to defy time.'
-      },
-      {
-        id: 'fragrances',
-        name: 'Fragrances',
-        image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&q=80&w=300',
-        description: 'Rare olfactive signatures captured in handcrafted crystal.'
-      },
-      {
-        id: 'leather goods',
-        name: 'Leather Goods',
-        image: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&q=80&w=300',
-        description: 'Pristine hides curated with seamless craftsmanship.'
-      },
-      {
-        id: 'accessories',
-        name: 'Accessories',
-        image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&q=80&w=300',
-        description: 'Accents of pure distinction for the discerning modern collector.'
-      }
-    ];
+    const defaultCats: Category[] = [];
 
+    let fetchedCats: Category[] = [];
     try {
       if (db) {
         const querySnapshot = await getDocs(collection(db, 'rich_categories'));
-        if (!querySnapshot.empty) {
-          const list: Category[] = [];
-          querySnapshot.forEach((doc) => {
-            list.push({ id: doc.id, ...doc.data() } as Category);
-          });
-          // Ensure default ones are there if not overwritten
-          const merged = [...list];
-          defaultCats.forEach(def => {
-            if (!merged.some(m => m.id.toLowerCase() === def.id.toLowerCase() || m.name.toLowerCase() === def.name.toLowerCase())) {
-              merged.push(def);
-            }
-          });
-          return merged;
-        }
+        const list: Category[] = [];
+        querySnapshot.forEach((doc) => {
+          list.push({ id: doc.id, ...doc.data() } as Category);
+        });
+
+        fetchedCats = list;
+        // Always sync successfully fetched categories to localStorage to prevent deleted items from restoring
+        localStorage.setItem('zylo_rich_categories', JSON.stringify(fetchedCats));
       }
     } catch (e) {
       console.warn("Firestore rich categories fetch failed.", e);
     }
 
-    const local = localStorage.getItem('zylo_rich_categories');
-    if (local) {
-      return JSON.parse(local);
-    } else {
-      localStorage.setItem('zylo_rich_categories', JSON.stringify(defaultCats));
-      return defaultCats;
+    if (fetchedCats.length === 0) {
+      const local = localStorage.getItem('zylo_rich_categories');
+      if (local) {
+        fetchedCats = JSON.parse(local);
+      } else {
+        localStorage.setItem('zylo_rich_categories', JSON.stringify([]));
+        fetchedCats = [];
+      }
     }
+
+    return fetchedCats;
   },
 
   async saveCategory(category: string): Promise<void> {
@@ -645,7 +697,10 @@ export const EcommerceService = {
     } catch (e) {
       console.error("Firestore save rich category failed:", e);
     }
-    const cats = await this.getRichCategories();
+    
+    const local = localStorage.getItem('zylo_rich_categories');
+    const cats: Category[] = local ? JSON.parse(local) : [];
+    
     const idx = cats.findIndex(c => c.id === category.id);
     if (idx >= 0) {
       cats[idx] = category;
@@ -663,7 +718,10 @@ export const EcommerceService = {
     } catch (e) {
       console.error("Firestore delete rich category failed:", e);
     }
-    const cats = await this.getRichCategories();
+    
+    const local = localStorage.getItem('zylo_rich_categories');
+    const cats: Category[] = local ? JSON.parse(local) : [];
+    
     const filtered = cats.filter(c => c.id !== id);
     localStorage.setItem('zylo_rich_categories', JSON.stringify(filtered));
   },

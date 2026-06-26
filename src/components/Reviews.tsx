@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Star, ShieldCheck, ThumbsUp, Camera, Check, X } from 'lucide-react';
+import { Star, ShieldCheck, ThumbsUp, Camera, Check, X, Image as ImageIcon } from 'lucide-react';
 import { Review } from '../types';
 import { EcommerceService } from '../lib/ecommerceService';
 
@@ -11,7 +11,15 @@ interface ReviewsProps {
 export default function Reviews({ productId, currentUser }: ReviewsProps) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [activeLightbox, setActiveLightbox] = useState<{
+    image: string;
+    userName: string;
+    rating: number;
+    title: string;
+    comment: string;
+    date: string;
+    verified: boolean;
+  } | null>(null);
   
   // Form State
   const [rating, setRating] = useState(5);
@@ -51,7 +59,7 @@ export default function Reviews({ productId, currentUser }: ReviewsProps) {
         reader.onloadend = () => {
           setImageFiles(prev => [...prev, reader.result as string]);
         };
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(file as unknown as Blob);
       });
     }
   };
@@ -214,34 +222,54 @@ export default function Reviews({ productId, currentUser }: ReviewsProps) {
               </div>
 
               {/* Image Attachments */}
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <label className="text-xs font-mono text-gray-400 tracking-wider block uppercase">Attach Photos (Optional)</label>
-                <div className="flex flex-wrap gap-2 items-center">
-                  <label className="w-12 h-12 rounded-xl border border-dashed border-white/20 hover:border-amber-500/40 flex items-center justify-center text-gray-400 cursor-pointer transition-colors bg-white/5">
-                    <Camera className="w-5 h-5" />
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Upload from Album */}
+                  <label className="flex flex-col items-center justify-center p-3 border border-dashed border-white/10 hover:border-amber-500/40 rounded-xl bg-white/5 cursor-pointer transition-all duration-200 group text-center">
+                    <ImageIcon className="w-5 h-5 text-gray-400 group-hover:text-amber-500 mb-1 transition-colors" />
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-gray-300 group-hover:text-amber-500 font-semibold">From Album</span>
+                    <span className="text-[8px] text-gray-500">Upload photos</span>
                     <input 
                       type="file" 
                       accept="image/*" 
                       multiple
-                      capture="environment"
                       onChange={handleImageMock} 
                       className="hidden" 
                     />
                   </label>
 
-                  {imageFiles.map((img, i) => (
-                    <div key={i} className="relative w-12 h-12 rounded-xl overflow-hidden border border-white/10 group">
-                      <img src={img} alt="review" className="w-full h-full object-cover" />
-                      <button
-                        type="button"
-                        onClick={() => setImageFiles(prev => prev.filter((_, idx) => idx !== i))}
-                        className="absolute top-0.5 right-0.5 p-0.5 bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ))}
+                  {/* Take Photo with Camera */}
+                  <label className="flex flex-col items-center justify-center p-3 border border-dashed border-white/10 hover:border-amber-500/40 rounded-xl bg-white/5 cursor-pointer transition-all duration-200 group text-center">
+                    <Camera className="w-5 h-5 text-gray-400 group-hover:text-amber-500 mb-1 transition-colors" />
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-gray-300 group-hover:text-amber-500 font-semibold">Direct Camera</span>
+                    <span className="text-[8px] text-gray-500">Use native camera</span>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      capture="environment"
+                      onChange={handleImageMock} 
+                      className="hidden" 
+                    />
+                  </label>
                 </div>
+
+                {imageFiles.length > 0 && (
+                  <div className="flex flex-wrap gap-2 items-center pt-1">
+                    {imageFiles.map((img, i) => (
+                      <div key={i} className="relative w-12 h-12 rounded-xl overflow-hidden border border-white/10 group">
+                        <img src={img} alt="review" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setImageFiles(prev => prev.filter((_, idx) => idx !== i))}
+                          className="absolute top-0.5 right-0.5 p-0.5 bg-black/60 rounded-full text-white opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Submit btn */}
@@ -306,30 +334,35 @@ export default function Reviews({ productId, currentUser }: ReviewsProps) {
                     </p>
                   </div>
 
-                  {/* Review photos */}
+                  {/* Review photos in small clickable boxes */}
                   {rev.images && rev.images.length > 0 && (
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2 pt-1">
                       {rev.images.map((img, idx) => (
                         <button 
                           key={idx} 
-                          onClick={() => setLightboxImage(img)}
-                          className="w-16 h-16 rounded-lg overflow-hidden border border-white/10 bg-black cursor-pointer"
+                          onClick={() => setActiveLightbox({
+                            image: img,
+                            userName: rev.userName,
+                            rating: rev.rating,
+                            title: rev.title,
+                            comment: rev.comment,
+                            date: rev.date,
+                            verified: rev.verified || false
+                          })}
+                          className="w-16 h-16 rounded-lg overflow-hidden border border-white/10 bg-black cursor-pointer group relative hover:border-amber-500/50 transition-all shadow-md"
                         >
-                          <img src={img} alt="critique attachment" className="w-full h-full object-cover hover:scale-110 transition-transform duration-300" />
+                          <img src={img} alt="critique attachment" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                          <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
+                          <div className="absolute bottom-0.5 right-0.5 bg-black/75 px-1 py-0.5 rounded text-[8px] font-mono text-amber-400 flex items-center gap-0.5 shadow">
+                            <Star className="w-2 h-2 fill-amber-400 text-amber-400" />
+                            <span>{rev.rating}</span>
+                          </div>
                         </button>
                       ))}
                     </div>
                   )}
 
-                  {/* Lightbox Modal */}
-                  {lightboxImage && (
-                    <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4" onClick={() => setLightboxImage(null)}>
-                      <button className="absolute top-4 right-4 text-white p-2" onClick={() => setLightboxImage(null)}><X /></button>
-                      <img src={lightboxImage} alt="Expanded" className="max-w-full max-h-full object-contain rounded-lg" />
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-4 text-[10px] font-mono text-gray-500">
+                  <div className="flex items-center gap-4 text-[10px] font-mono text-gray-500 pt-1">
                     <span>Was this helpful?</span>
                     <button 
                       onClick={() => handleLike(rev.id)}
@@ -345,6 +378,85 @@ export default function Reviews({ productId, currentUser }: ReviewsProps) {
           )}
         </div>
       </div>
+
+      {/* Upgraded Professional Lightbox Modal with Star Comment and Details */}
+      {activeLightbox && (
+        <div 
+          className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200" 
+          onClick={() => setActiveLightbox(null)}
+        >
+          <div 
+            className="relative w-full max-w-4xl bg-[#121212] border border-white/10 rounded-2xl overflow-hidden flex flex-col md:flex-row shadow-2xl animate-in zoom-in-95 duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button 
+              className="absolute top-4 right-4 z-50 p-2 rounded-full bg-black/60 hover:bg-black text-white hover:text-amber-400 transition-all border border-white/10 shadow cursor-pointer" 
+              onClick={() => setActiveLightbox(null)}
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Left/Top Side: Image Panel */}
+            <div className="w-full md:w-3/5 bg-black/50 flex items-center justify-center p-4 min-h-[300px] md:min-h-[450px] relative">
+              <img 
+                src={activeLightbox.image} 
+                alt="Product Critique" 
+                className="max-w-full max-h-[50vh] md:max-h-[600px] object-contain rounded" 
+              />
+              
+              {/* Floating rating badge over image */}
+              <div className="absolute bottom-4 left-4 bg-black/85 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-1 shadow-lg text-xs font-mono text-amber-400">
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                <span>Rating: {activeLightbox.rating}.0</span>
+              </div>
+            </div>
+
+            {/* Right/Bottom Side: Star Comment details panel */}
+            <div className="w-full md:w-2/5 p-6 sm:p-8 flex flex-col justify-between bg-zinc-950 border-t md:border-t-0 md:border-l border-white/10">
+              <div className="space-y-6">
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-mono text-amber-500 uppercase tracking-wider">Verified Purchase Photo</span>
+                    {activeLightbox.verified && (
+                      <span className="flex items-center gap-1 text-[8px] font-mono tracking-wider bg-amber-500/10 text-amber-400 px-1.5 py-0.5 rounded-full border border-amber-500/20 uppercase">
+                        <ShieldCheck className="w-2.5 h-2.5" /> Verified
+                      </span>
+                    )}
+                  </div>
+                  <h4 className="text-lg font-sans font-medium text-white tracking-wide mt-2">{activeLightbox.userName}</h4>
+                  <span className="text-[10px] text-gray-500 font-mono block mt-0.5">{activeLightbox.date}</span>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex text-amber-500 gap-0.5">
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <Star 
+                        key={star} 
+                        className={`w-4 h-4 ${star <= activeLightbox.rating ? 'fill-amber-500' : 'text-gray-600'}`} 
+                      />
+                    ))}
+                  </div>
+                  <h5 className="text-sm font-mono text-white tracking-wide">{activeLightbox.title}</h5>
+                  <p className="text-xs sm:text-sm text-gray-300 font-sans font-light leading-relaxed">
+                    "{activeLightbox.comment}"
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-gray-500">
+                <span>Atelier Certified Critique</span>
+                <button 
+                  onClick={() => setActiveLightbox(null)}
+                  className="px-4 py-1.5 rounded-md bg-white/5 hover:bg-amber-500 hover:text-black transition-all text-xs font-sans font-semibold cursor-pointer"
+                >
+                  Close View
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

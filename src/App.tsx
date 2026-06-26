@@ -10,6 +10,7 @@ import CheckoutModal from './components/CheckoutModal';
 import Dashboard from './components/Dashboard';
 import MyOrders from './components/MyOrders';
 import AdminDashboard from './components/AdminDashboard';
+import HelpPage from './components/HelpPage';
 import FAQ from './components/FAQ';
 import { 
   ShoppingBag, Trash2, Heart, X, Check, Mail, MapPin, Shield, Star, Lock, Eye, Compass, Phone, Sparkles, Search
@@ -17,7 +18,7 @@ import {
 
 export default function App() {
   // Navigation & Screens
-  const [activeScreen, setActiveScreen] = useState<'storefront' | 'shop' | 'dashboard' | 'my-orders' | 'admin' | 'auth' | 'about'>('storefront');
+  const [activeScreen, setActiveScreen] = useState<'storefront' | 'shop' | 'dashboard' | 'my-orders' | 'admin' | 'auth' | 'about' | 'help'>('storefront');
   
   // Data State
   const [products, setProducts] = useState<Product[]>([]);
@@ -413,8 +414,7 @@ export default function App() {
   // Generate unique dynamic categories list
   const dynamicCategories: string[] = Array.from(new Set([
     'All',
-    ...categories.map(c => c.name),
-    ...(products.map(p => p.category).filter(Boolean) as string[])
+    ...categories.map(c => c.name)
   ]));
 
   return (
@@ -426,6 +426,9 @@ export default function App() {
         currentUser={currentUser}
         logoUrl={siteSettings?.logoUrl}
         brandName={siteSettings?.brandName}
+        products={products}
+        categories={categories}
+        onProductClick={setSelectedProduct}
         onOpenCartDrawer={() => setIsCartOpen(true)}
         onOpenWishlistDrawer={() => setIsWishlistOpen(true)}
         onAuthClick={() => setActiveScreen('auth')}
@@ -437,6 +440,7 @@ export default function App() {
           setSelectedCategory('All');
         }}
         onAboutClick={() => setActiveScreen('about')}
+        onHelpClick={() => setActiveScreen('help')}
         onHomeClick={() => {
           setActiveScreen('storefront');
           setSelectedCategory('All');
@@ -445,10 +449,19 @@ export default function App() {
           setTempMaxPrice(6000);
           setInStockOnly(false);
         }}
-        onShopClick={() => {
+        onShopClick={(keepSearch) => {
           setSelectedCategory('All');
-          setSearchQuery('');
+          if (!keepSearch) {
+            setSearchQuery('');
+          }
           setActiveScreen('shop');
+        }}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        onCategorySelect={(catName) => {
+          setSelectedCategory(catName);
+          setActiveScreen('shop');
+          window.scrollTo(0, 0);
         }}
       />
 
@@ -456,7 +469,7 @@ export default function App() {
           SCREEN 1: THE MAIN STOREFRONT
           ======================================================== */}
       {activeScreen === 'storefront' && (
-        <main className="space-y-16">
+        <main className="space-y-16 pt-44">
           {/* HIGH-FIDELITY HERO SLIDER */}
           <Hero onExploreClick={() => {
             const el = document.getElementById('catalog-anchor');
@@ -558,12 +571,12 @@ export default function App() {
                 {/* Header of the boutique */}
                 <div className="border-b border-gray-150 pb-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
-                    <span className="text-[10px] font-mono tracking-[0.2em] text-amber-600 uppercase block font-semibold">Exhibition Hall</span>
-                    <h3 className="text-2xl font-sans tracking-tight text-gray-900 font-light mt-1">
+                    <span className="text-[10px] font-sans tracking-[0.2em] text-black uppercase block font-semibold">Exhibition Hall</span>
+                    <h3 className="text-2xl font-sans tracking-tight text-black font-bold mt-1">
                       {searchQuery.trim() !== '' ? (
-                        <>Search Results: <span className="italic font-serif text-amber-800 font-medium">"{searchQuery}"</span></>
+                        <>Search Results: "{searchQuery}"</>
                       ) : (
-                        <>Salon Showcase: <span className="italic font-serif text-amber-800 font-medium">{selectedCategory}</span></>
+                        <>Product: {selectedCategory}</>
                       )}
                     </h3>
                     <p className="text-xs text-gray-500 font-sans mt-1">
@@ -891,7 +904,7 @@ export default function App() {
           SCREEN 1.5: THE BOUTIQUE SHOP (WHITE BACKGROUND & SIDEBAR FILTERS)
           ======================================================== */}
       {activeScreen === 'shop' && (
-        <main className="min-h-screen bg-white text-gray-900 pt-28 pb-20">
+        <main className="min-h-screen bg-white text-gray-900 pt-44 pb-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
             
             {/* Breadcrumb / Back Navigation */}
@@ -916,12 +929,12 @@ export default function App() {
             {/* Main Header inside the Shop Page */}
             <div className="border-b border-gray-200 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <span className="text-[10px] font-mono tracking-[0.25em] text-amber-600 uppercase block font-bold">Atelier Exhibition Hall</span>
-                <h2 className="text-3xl font-sans tracking-tight text-gray-900 font-light mt-1">
+                <span className="text-[10px] font-sans tracking-[0.25em] text-black uppercase block font-bold">Atelier Exhibition Hall</span>
+                <h2 className="text-3xl font-sans tracking-tight text-black font-bold mt-1">
                   {searchQuery.trim() !== '' ? (
-                    <>Search Results for <span className="italic font-serif text-amber-800 font-semibold">"{searchQuery}"</span></>
+                    <>Search Results for "{searchQuery}"</>
                   ) : (
-                    <>Salon Showcase: <span className="italic font-serif text-amber-800 font-semibold">{selectedCategory}</span></>
+                    <>Product: {selectedCategory}</>
                   )}
                 </h2>
                 <p className="text-xs text-gray-500 font-sans mt-1">
@@ -1105,7 +1118,7 @@ export default function App() {
           SCREEN 1.6: ABOUT US PAGE
           ======================================================== */}
       {activeScreen === 'about' && (
-        <main className="min-h-screen bg-black text-white pt-32 pb-24">
+        <main className="min-h-screen bg-black text-white pt-44 pb-24">
           <div className="max-w-4xl mx-auto px-6 space-y-16">
             <div className="text-center space-y-4">
               <span className="text-[10px] font-mono tracking-[0.5em] text-amber-500 uppercase block">The Legend</span>
@@ -1164,8 +1177,12 @@ export default function App() {
       {/* ========================================================
           SCREEN 2: AUTHENTICATION SCREENS (LOGIN/REGISTER)
           ======================================================== */}
+      {activeScreen === 'help' && (
+        <HelpPage siteSettings={siteSettings} onClose={() => setActiveScreen('storefront')} />
+      )}
+
       {activeScreen === 'auth' && (
-        <div className="min-h-[80vh] flex items-center justify-center px-4 py-24 max-w-md mx-auto">
+        <div className="min-h-[80vh] flex items-center justify-center px-4 pt-44 pb-24 max-w-md mx-auto">
           <div className="w-full bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 sm:p-8 space-y-6 shadow-[0_0_50px_rgba(0,0,0,0.8)]">
             <div className="text-center space-y-2">
               <span className="text-[10px] font-mono tracking-[0.3em] text-amber-500 uppercase block">Private Cleared Registry</span>
