@@ -6,6 +6,8 @@ interface HeaderProps {
   cart: CartItem[];
   wishlist: string[];
   currentUser: any;
+  logoUrl?: string;
+  brandName?: string;
   onOpenCartDrawer: () => void;
   onOpenWishlistDrawer: () => void;
   onAuthClick: () => void;
@@ -15,12 +17,15 @@ interface HeaderProps {
   onSearchToggle: () => void;
   onHomeClick?: () => void;
   onShopClick?: () => void;
+  onAboutClick?: () => void;
 }
 
 export default function Header({
   cart,
   wishlist,
   currentUser,
+  logoUrl,
+  brandName = 'Zylo',
   onOpenCartDrawer,
   onOpenWishlistDrawer,
   onAuthClick,
@@ -29,7 +34,8 @@ export default function Header({
   onAdminClick,
   onSearchToggle,
   onHomeClick,
-  onShopClick
+  onShopClick,
+  onAboutClick
 }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -45,12 +51,20 @@ export default function Header({
           onClick={onHomeClick}
           className="flex items-center gap-1.5 sm:gap-2 text-left bg-transparent border-none p-0 cursor-pointer focus:outline-none group"
         >
-          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center font-serif text-black font-extrabold text-xs sm:text-sm shadow-[0_0_15px_rgba(245,158,11,0.2)] group-hover:scale-105 transition-transform">
-            Z
-          </div>
-          <span className="font-sans font-light tracking-[0.2em] sm:tracking-[0.25em] text-white text-sm sm:text-base uppercase">
-            ZYLO <span className="text-[8px] sm:text-[9px] text-amber-500 font-mono tracking-normal block -mt-1 font-bold">PREMIUM SHOP</span>
-          </span>
+          {logoUrl ? (
+            <div className="h-8 sm:h-10 transition-transform group-hover:scale-105">
+              <img src={logoUrl} alt={brandName} className="h-full w-auto object-contain" />
+            </div>
+          ) : (
+            <>
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center font-serif text-black font-extrabold text-xs sm:text-sm shadow-[0_0_15px_rgba(245,158,11,0.2)] group-hover:scale-105 transition-transform">
+                {brandName.charAt(0).toUpperCase()}
+              </div>
+              <span className="font-sans font-light tracking-[0.2em] sm:tracking-[0.25em] text-white text-sm sm:text-base uppercase">
+                {brandName} <span className="text-[8px] sm:text-[9px] text-amber-500 font-mono tracking-normal block -mt-1 font-bold">PREMIUM SHOP</span>
+              </span>
+            </>
+          )}
         </button>
 
         {/* ELEGANT CENTRAL NAVIGATION LINKS (Desktop/Tablet) */}
@@ -69,10 +83,16 @@ export default function Header({
             Shop
           </button>
           <button
+            onClick={onAboutClick}
+            className="hover:text-amber-400 transition-colors cursor-pointer py-2 uppercase font-medium"
+          >
+            About
+          </button>
+          <button
             onClick={onOpenWishlistDrawer}
             className="hover:text-amber-400 transition-colors cursor-pointer py-2 uppercase font-medium"
           >
-            Whistle Boutique
+            {brandName}
           </button>
         </nav>
 
@@ -90,7 +110,7 @@ export default function Header({
           <button 
             onClick={onOpenWishlistDrawer}
             className="p-2 text-gray-400 hover:text-white transition-colors cursor-pointer relative"
-            title="Whistle Boutique"
+            title={brandName}
           >
             <Heart className="w-4 h-4" />
             {wishlistCount > 0 && (
@@ -186,7 +206,7 @@ export default function Header({
               }}
               className="py-3.5 bg-white/5 border border-white/10 rounded-xl text-center active:bg-white/10 transition-colors"
             >
-              Whistle Boutique ({wishlistCount})
+              {brandName} ({wishlistCount})
             </button>
             <button
               onClick={() => {
@@ -218,6 +238,15 @@ export default function Header({
               className="py-3 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-xl text-center active:bg-amber-500/20 transition-colors"
             >
               Shop
+            </button>
+            <button
+              onClick={() => {
+                if (onAboutClick) onAboutClick();
+                setMobileMenuOpen(false);
+              }}
+              className="py-3 bg-white/5 text-gray-300 rounded-xl text-center active:bg-white/10 transition-colors col-span-2"
+            >
+              About Us
             </button>
           </div>
 

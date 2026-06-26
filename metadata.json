@@ -1,5 +1,5 @@
 {
-  "name": "Zylo Luxury E-Commerce",
+  "name": "Zylo",
   "description": "A high-end, premium luxury e-commerce platform featuring immersive visual experiences, smooth animations, persistent shopping tools, robust order processing, and a comprehensive admin panel.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

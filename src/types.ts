@@ -17,6 +17,8 @@ export interface Product {
   isFeatured?: boolean;
   isTrending?: boolean;
   isBestSeller?: boolean;
+  keywords?: string[];
+  variantLabel?: string;
 }
 
 export interface Variant {
@@ -33,6 +35,7 @@ export interface CartItem {
   product: Product;
   selectedVariant?: Variant;
   quantity: number;
+  status?: 'active' | 'cancel_requested' | 'cancelled' | 'return_requested' | 'returned';
 }
 
 export interface Review {
@@ -62,10 +65,10 @@ export interface Order {
   tax: number;
   shippingCharge: number;
   total: number;
-  paymentMethod: 'stripe' | 'razorpay';
+  paymentMethod: 'stripe' | 'razorpay' | 'cod';
   paymentId: string;
-  paymentStatus: 'paid' | 'pending' | 'failed' | 'refunded';
-  deliveryStatus: 'pending' | 'confirmed' | 'packed' | 'shipped' | 'out_for_delivery' | 'delivered' | 'cancelled' | 'returned';
+  paymentStatus: 'paid' | 'pending' | 'failed' | 'refunded' | 'cod_pending';
+  deliveryStatus: 'pending' | 'confirmed' | 'packed' | 'shipped' | 'out_for_delivery' | 'delivered' | 'cancelled' | 'returned' | 'cancel_requested' | 'return_requested';
   trackingNumber?: string;
   createdAt: string;
 }
@@ -76,6 +79,7 @@ export interface Address {
   addressLine1: string;
   addressLine2?: string;
   city: string;
+  district?: string;
   state: string;
   postalCode: string;
   country: string;
@@ -128,4 +132,19 @@ export interface HeroSlide {
   buttonText: string;
   link: string;
   isActive: boolean;
+}
+
+export interface SiteSettings {
+  logoUrl: string;
+  faviconUrl: string;
+  brandName: string;
+  aboutContent?: string;
+}
+
+export interface FAQItem {
+  id?: string;
+  question: string;
+  answer: string;
+  category: string;
+  icon?: any;
 }

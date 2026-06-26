@@ -11,7 +11,7 @@ import {
   where,
   addDoc
 } from 'firebase/firestore';
-import { Product, Order, Coupon, Review, User, CartItem, Category, Offer, HeroSlide } from '../types';
+import { Product, Order, Coupon, Review, User, CartItem, Category, Offer, HeroSlide, SiteSettings } from '../types';
 import { INITIAL_PRODUCTS, INITIAL_COUPONS } from '../data/mockData';
 
 // --- FIRESTORE ERROR HANDLING (as per skill) ---
@@ -73,6 +73,7 @@ const REVIEWS_KEY = 'zylo_reviews';
 const USER_KEY = 'zylo_user';
 const CART_KEY = 'zylo_cart';
 const WISHLIST_KEY = 'zylo_wishlist';
+const SETTINGS_KEY = 'zylo_settings';
 
 // Dual-mode Helper: Check if Firestore is active and reachable
 async function isFirestoreActive(): Promise<boolean> {
@@ -357,17 +358,34 @@ export const EcommerceService = {
   // ----------------------------------------------------
   // ORDERS SERVICE
   // ----------------------------------------------------
+  // ----------------------------------------------------
+  // ORDERS SERVICE
+  // ----------------------------------------------------
+  async getAddressDetailsByPincode(pincode: string): Promise<any | null> {
+    try {
+      const response = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
+      const data = await response.json();
+      if (data && data[0] && data[0].Status === 'Success') {
+        return data[0].PostOffice[0];
+      }
+      return null;
+    } catch (e) {
+      console.error("Failed to fetch address details:", e);
+      return null;
+    }
+  },
+
   async getOrders(userId?: string): Promise<Order[]> {
     try {
       if (db) {
-        const querySnapshot = await getDocs(collection(db, 'orders'));
+        const ordersCollection = collection(db, 'orders');
+        const q = userId ? query(ordersCollection, where('userId', '==', userId)) : ordersCollection;
+        const querySnapshot = await getDocs(q);
         const orders: Order[] = [];
         querySnapshot.forEach((doc) => {
           orders.push({ id: doc.id, ...doc.data() } as Order);
         });
-        if (orders.length > 0) {
-          return userId ? orders.filter(o => o.userId === userId) : orders;
-        }
+        return orders;
       }
     } catch (e) {
       console.warn("Firestore orders failed. Utilizing localStorage.", e);
@@ -381,7 +399,11 @@ export const EcommerceService = {
   async createOrder(order: Order): Promise<void> {
     try {
       if (db) {
-        await setDoc(doc(db, 'orders', order.id), order);
+        try {
+          await setDoc(doc(db, 'orders', order.id), order);
+        } catch (e) {
+          handleFirestoreError(e, OperationType.WRITE, `orders/${order.id}`);
+        }
       }
     } catch (e) {
       console.error("Firestore create order failed:", e);
@@ -405,12 +427,35 @@ export const EcommerceService = {
     }
   },
 
+  async updateOrderItemStatus(orderId: string, itemId: string, status: CartItem['status']): Promise<void> {
+    try {
+      if (db) {
+        const docRef = doc(db, 'orders', orderId);
+        const docSnap = await getDocs(collection(db, 'orders'));
+        const orderData = docSnap.docs.find(d => d.id === orderId)?.data() as Order;
+        if (orderData) {
+          const items = orderData.items.map(i => i.id === itemId ? { ...i, status } : i);
+          await setDoc(docRef, { items }, { merge: true });
+        }
+      }
+    } catch (e) {
+      console.error("Firestore update item status failed:", e);
+    }
+
+    const allOrders = await this.getOrders();
+    const index = allOrders.findIndex(o => o.id === orderId);
+    if (index >= 0) {
+      allOrders[index].items = allOrders[index].items.map(i => i.id === itemId ? { ...i, status } : i);
+      localStorage.setItem(ORDERS_KEY, JSON.stringify(allOrders));
+    }
+  },
+
   async updateOrderStatus(orderId: string, status: Order['deliveryStatus'], trackingNumber?: string): Promise<void> {
     try {
       if (db) {
         const fields: Partial<Order> = { deliveryStatus: status };
         if (trackingNumber) fields.trackingNumber = trackingNumber;
-        await updateDoc(doc(db, 'orders', orderId), fields as any);
+        await setDoc(doc(db, 'orders', orderId), fields, { merge: true });
       }
     } catch (e) {
       console.error("Firestore update order status failed:", e);
@@ -728,5 +773,47 @@ export const EcommerceService = {
     const slides = await this.getHeroSlides();
     const filtered = slides.filter(s => s.id !== id);
     localStorage.setItem(HERO_KEY, JSON.stringify(filtered));
+  },
+
+  async getSiteSettings(): Promise<SiteSettings> {
+    const defaultSettings: SiteSettings = {
+      logoUrl: 'https://images.unsplash.com/photo-1583391733956-6c7827447678?auto=format&fit=crop&q=80&w=100',
+      faviconUrl: 'https://images.unsplash.com/photo-1583391733956-6c7827447678?auto=format&fit=crop&q=80&w=32',
+      brandName: 'Zylo'
+    };
+
+    try {
+      if (db) {
+        const settingsDoc = await getDoc(doc(db, 'settings', 'site'));
+        if (settingsDoc.exists()) {
+          return settingsDoc.data() as SiteSettings;
+        }
+      }
+    } catch (e) {
+      console.warn("Firestore settings fetch failed.", e);
+    }
+
+    const local = localStorage.getItem(SETTINGS_KEY);
+    return local ? JSON.parse(local) : defaultSettings;
+  },
+
+  async saveSiteSettings(settings: SiteSettings): Promise<void> {
+    try {
+      if (db) {
+        await setDoc(doc(db, 'settings', 'site'), settings, { merge: true });
+      }
+    } catch (e) {
+      console.error("Firestore save settings failed:", e);
+    }
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    
+    // Dynamically update favicon if browser supports it
+    const link = document.querySelector("link[rel~='icon']") || document.createElement('link');
+    (link as HTMLLinkElement).rel = 'icon';
+    (link as HTMLLinkElement).href = settings.faviconUrl;
+    if (!document.head.contains(link)) {
+      document.head.appendChild(link);
+    }
+    document.title = settings.brandName;
   }
 };

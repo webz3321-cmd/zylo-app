@@ -1,4 +1,5 @@
 import { Search, SlidersHorizontal, ChevronDown, Check } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 interface FiltersProps {
   searchQuery: string;
@@ -12,29 +13,52 @@ interface FiltersProps {
   inStockOnly: boolean;
   setInStockOnly: (b: boolean) => void;
   categories?: string[];
+  onFilterEnd?: () => void;
 }
 
 const DEFAULT_CATEGORIES = ["All", "Timepieces", "Fragrances", "Leather Goods", "Accessories"];
 
 export default function Filters({
-  searchQuery, setSearchQuery, selectedCategory, setSelectedCategory, sortBy, setSortBy, maxPrice, setMaxPrice, inStockOnly, setInStockOnly, categories
+  searchQuery, setSearchQuery, selectedCategory, setSelectedCategory, sortBy, setSortBy, maxPrice, setMaxPrice, inStockOnly, setInStockOnly, categories, onFilterEnd
 }: FiltersProps) {
   const listToUse = categories && categories.length > 0 ? categories : DEFAULT_CATEGORIES;
+  
+  const [localSearch, setLocalSearch] = useState(searchQuery);
+  
+  useEffect(() => {
+    setLocalSearch(searchQuery);
+  }, [searchQuery]);
+
+  const handleSearchSubmit = () => {
+    setSearchQuery(localSearch);
+    onFilterEnd?.();
+  };
 
   return (
     <div id="filter-panel-wrapper" className="bg-white/5 border border-white/10 rounded-2xl p-5 sm:p-6 backdrop-blur-md space-y-6">
       {/* Search and Category block */}
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
         {/* Search input */}
-        <div className="relative w-full md:max-w-md">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-          <input
-            type="text"
-            placeholder="Search our master private vaults..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500/50"
-          />
+        <div className="flex w-full md:max-w-md gap-2">
+          <div className="relative w-full">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <input
+              type="text"
+              placeholder="Search our master private vaults..."
+              value={localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSearchSubmit();
+              }}
+              className="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500/50"
+            />
+          </div>
+          <button 
+            onClick={handleSearchSubmit}
+            className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black text-xs font-mono tracking-widest uppercase rounded-xl transition-all font-bold cursor-pointer whitespace-nowrap shrink-0"
+          >
+            Search
+          </button>
         </div>
 
         {/* Categories list */}
@@ -42,7 +66,10 @@ export default function Filters({
           {listToUse.map((cat) => (
             <button
               key={cat}
-              onClick={() => setSelectedCategory(cat)}
+              onClick={() => {
+                setSelectedCategory(cat);
+                onFilterEnd?.();
+              }}
               className={`px-4 py-2 rounded-xl text-xs font-mono tracking-wider transition-all cursor-pointer whitespace-nowrap uppercase ${
                 selectedCategory === cat 
                   ? 'bg-amber-500 border border-amber-400 text-black font-semibold' 
@@ -70,6 +97,7 @@ export default function Filters({
             step={50}
             value={maxPrice}
             onChange={(e) => setMaxPrice(Number(e.target.value))}
+            onPointerUp={() => onFilterEnd?.()}
             className="w-full h-1 bg-white/5 rounded-lg appearance-none cursor-pointer accent-amber-500 border border-white/5"
           />
         </div>

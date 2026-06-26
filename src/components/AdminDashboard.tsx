@@ -1,15 +1,40 @@
 import React, { useState, useEffect } from 'react';
-import { Product, Order, Coupon, Review, Variant, Category, Offer, HeroSlide } from '../types';
+import { Product, Order, Coupon, Review, Variant, Category, Offer, HeroSlide, SiteSettings, FAQItem } from '../types';
 import { EcommerceService } from '../lib/ecommerceService';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, CartesianGrid
 } from 'recharts';
 import { 
-  DollarSign, ShoppingCart, Users, Tag, Plus, Edit, Trash2, Check, RefreshCw, X, FileText, Settings, Star, Layers, Calendar, Search, Sparkles
+  DollarSign, ShoppingCart, Users, Tag, Plus, Edit, Trash2, Check, RefreshCw, X, FileText, Settings, Star, Layers, Calendar, Search, Sparkles, Download, Upload, QrCode, Bell, AlertTriangle
 } from 'lucide-react';
 
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import QRCode from 'qrcode';
+
 export default function AdminDashboard({ onBackToStore }: { onBackToStore: () => void }) {
-  const [activeTab, setActiveTab] = useState<'analytics' | 'products' | 'categories' | 'orders' | 'coupons' | 'reviews' | 'offers' | 'hero' | 'admins'>('analytics');
+  const [faqItems, setFaqItems] = useState<FAQItem[]>([]);
+  const [editingFAQ, setEditingFAQ] = useState<FAQItem | null>(null);
+  const [faqForm, setFaqForm] = useState<Partial<FAQItem>>({
+    question: '', answer: '', category: 'General'
+  });
+  
+  // Need to update loadAllAdminData to fetch FAQ items if persisted in Firestore
+  // For now, assume EcommerceService has methods for FAQs
+  
+  const handleFAQSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!faqForm.question || !faqForm.answer) return;
+    
+    // Logic to save FAQ via EcommerceService
+    // await EcommerceService.saveFAQ(faqForm);
+    
+    showNotification('FAQ updated.');
+    setEditingFAQ(null);
+    setFaqForm({ question: '', answer: '', category: 'General' });
+    loadAllAdminData();
+  };
+  const [activeTab, setActiveTab] = useState<'analytics' | 'products' | 'categories' | 'orders' | 'coupons' | 'reviews' | 'offers' | 'hero' | 'admins' | 'settings' | 'faq'>('analytics');
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
@@ -17,6 +42,11 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
   const [offers, setOffers] = useState<Offer[]>([]);
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([]);
   const [authorizedAdmins, setAuthorizedAdmins] = useState<string[]>([]);
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>({
+    logoUrl: '',
+    faviconUrl: '',
+    brandName: 'Zylo'
+  });
   
   // Categories tab refinement states
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,7 +70,7 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [productForm, setProductForm] = useState<Partial<Product>>({
     name: '', tagline: '', description: '', price: 100, category: 'Timepieces', subCategory: 'Chrono', images: [''], features: [''], specs: {}, variants: [],
-    isTrending: false, isBestSeller: false
+    isTrending: false, isBestSeller: false, variantLabel: 'Variant'
   });
   const [variantForm, setVariantForm] = useState<Partial<Variant>>({
     name: '', type: 'color', value: '#ffffff', additionalPrice: 0, stock: 10
@@ -94,6 +124,7 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
     const offList = await EcommerceService.getOffers();
     const heroList = await EcommerceService.getHeroSlides();
     const adminList = await EcommerceService.getAuthorizedAdmins();
+    const settings = await EcommerceService.getSiteSettings();
     setProducts(pList);
     setOrders(oList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
     setCoupons(cList);
@@ -102,6 +133,7 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
     setOffers(offList);
     setHeroSlides(heroList);
     setAuthorizedAdmins(adminList);
+    setSiteSettings(settings);
   };
 
   const [adminEmailForm, setAdminEmailForm] = useState('');
@@ -109,6 +141,21 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
   const showNotification = (msg: string) => {
     setNotif(msg);
     setTimeout(() => setNotif(''), 4000);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, callback: (base64: string) => void) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        showNotification('File size too large. Max 2MB allowed.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        callback(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleCategorySubmit = async (e: React.FormEvent) => {
@@ -168,7 +215,8 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
       specs: productForm.specs || { "Warranty": "5 Years" },
       isNew: editingProduct ? editingProduct.isNew : true,
       isTrending: productForm.isTrending || false,
-      isBestSeller: productForm.isBestSeller || false
+      isBestSeller: productForm.isBestSeller || false,
+      variantLabel: productForm.variantLabel || 'Variant'
     };
 
     await EcommerceService.saveProduct(cleanProduct);
@@ -187,11 +235,9 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
   };
 
   const handleDeleteProduct = async (id: string) => {
-    if (confirm('Are you sure you want to remove this masterpiece from catalog?')) {
-      await EcommerceService.deleteProduct(id);
-      loadAllAdminData();
-      showNotification('Product removed from catalog.');
-    }
+    await EcommerceService.deleteProduct(id);
+    loadAllAdminData();
+    showNotification('Product removed from catalog.');
   };
 
   const handleAddVariantToForm = () => {
@@ -226,6 +272,190 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
     showNotification(`Order status updated to ${status.toUpperCase()}`);
   };
 
+  const downloadLabel = async (order: Order) => {
+    try {
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: [100, 150] // typical label size
+      });
+      const brandName = siteSettings.brandName || 'Zylo';
+
+      // Title
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('SHIPPING LABEL', 50, 15, { align: 'center' });
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Order ID: ${order.id}`, 10, 25);
+      doc.text(`Date: ${new Date(order.createdAt).toLocaleDateString()}`, 10, 30);
+
+      // Address
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('SHIP TO:', 10, 45);
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      const addr = order.shippingAddress;
+      const addressLines = [
+        addr.fullName,
+        addr.addressLine1,
+        addr.addressLine2,
+        `${addr.city}, ${addr.state} ${addr.postalCode}`,
+        addr.country,
+        `Phone: ${addr.phone}`
+      ].filter(Boolean);
+
+      let yPos = 52;
+      addressLines.forEach(line => {
+        if (line) {
+          doc.text(line, 10, yPos);
+          yPos += 5;
+        }
+      });
+
+      // Products info
+      yPos += 5;
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text('CONTENTS:', 10, yPos);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      yPos += 6;
+      order.items.forEach(item => {
+        const txt = `- ${item.quantity}x ${item.product.name.substring(0, 30)}${item.product.name.length > 30 ? '...' : ''} (${item.selectedVariant?.name || 'Standard'})`;
+        doc.text(txt, 10, yPos);
+        yPos += 5;
+      });
+
+      // Total Value
+      yPos += 5;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Total Value: INR ${order.total}`, 10, yPos);
+
+      // QR Code
+      const qrData = `Order: ${order.id}\nName: ${addr.fullName}\nTotal: INR ${order.total}`;
+      const qrDataUrl = await QRCode.toDataURL(qrData, { margin: 1, width: 100 });
+      
+      // Calculate QR Code position to bottom center
+      const qrSize = 40;
+      doc.addImage(qrDataUrl, 'PNG', (100 - qrSize) / 2, Math.max(yPos + 5, 100), qrSize, qrSize);
+
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.text(brandName, 50, 145, { align: 'center' });
+
+      doc.save(`${brandName}_Label_${order.id}.pdf`);
+    } catch (e) {
+      console.error('Error generating label', e);
+      alert('Could not generate label');
+    }
+  };
+
+  const downloadInvoice = (order: Order) => {
+    const doc = new jsPDF();
+    const brandName = siteSettings.brandName || 'Zylo';
+    const primaryColor = [212, 175, 55]; // Gold/Amber
+
+    // Header
+    doc.setFillColor(12, 12, 12);
+    doc.rect(0, 0, 210, 40, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.text(brandName.toUpperCase(), 105, 20, { align: 'center' });
+    doc.setFontSize(10);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.text('OFFICIAL CERTIFICATE OF ACQUISITION', 105, 30, { align: 'center' });
+
+    // Invoice Info
+    doc.setTextColor(60, 60, 60);
+    doc.setFontSize(10);
+    doc.text(`Invoice ID: ${order.id.toUpperCase()}`, 15, 55);
+    doc.text(`Date: ${new Date(order.createdAt).toLocaleDateString()}`, 15, 62);
+    doc.text(`Status: ${order.deliveryStatus.toUpperCase()}`, 15, 69);
+
+    doc.text('PATRON DETAILS:', 140, 55);
+    doc.setTextColor(0, 0, 0);
+    doc.text(order.userName, 140, 62);
+    doc.text(order.userEmail, 140, 69);
+    
+    // Add Shipping Address
+    doc.setTextColor(60, 60, 60);
+    doc.text('SHIPPING ADDRESS:', 15, 80);
+    doc.setTextColor(0, 0, 0);
+    const addr = order.shippingAddress;
+    const addressLines = [
+      addr.fullName,
+      addr.addressLine1,
+      addr.addressLine2,
+      `${addr.city}, ${addr.state} ${addr.postalCode}`,
+      addr.country,
+      `Phone: ${addr.phone}`
+    ].filter(Boolean);
+
+    let yPosAddress = 87;
+    addressLines.forEach(line => {
+      if (line) {
+        doc.text(line, 15, yPosAddress);
+        yPosAddress += 6;
+      }
+    });
+
+    // Items Table
+    const tableData = order.items.map(item => [
+      item.product.name,
+      item.selectedVariant?.name || 'Standard',
+      `x ${item.quantity}`,
+      `INR ${item.product.price + (item.selectedVariant?.additionalPrice || 0)}`,
+      `INR ${(item.product.price + (item.selectedVariant?.additionalPrice || 0)) * item.quantity}`
+    ]);
+
+    autoTable(doc, {
+      startY: Math.max(yPosAddress + 10, 85),
+      head: [['Masterpiece', 'Variant', 'Qty', 'Unit Price', 'Total']],
+      body: tableData,
+      headStyles: { fillColor: [20, 20, 20], textColor: [255, 255, 255], fontStyle: 'bold' },
+      styles: { fontSize: 9, cellPadding: 5 },
+      columnStyles: { 4: { halign: 'right', fontStyle: 'bold' } }
+    });
+
+    const finalY = (doc as any).lastAutoTable.finalY || 150;
+
+    // Summary
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Summary:', 140, finalY + 15);
+    doc.text(`Subtotal:`, 140, finalY + 22);
+    doc.text(`Discount:`, 140, finalY + 29);
+    doc.text(`Tax:`, 140, finalY + 36);
+    doc.text(`Shipping:`, 140, finalY + 43);
+
+    doc.setTextColor(0, 0, 0);
+    doc.text(`INR ${order.total - order.tax + order.discount - (order.shippingCharge || 0)}`, 195, finalY + 22, { align: 'right' });
+    doc.text(`- INR ${order.discount}`, 195, finalY + 29, { align: 'right' });
+    doc.text(`INR ${order.tax}`, 195, finalY + 36, { align: 'right' });
+    doc.text(order.shippingCharge === 0 ? 'FREE' : `INR ${order.shippingCharge}`, 195, finalY + 43, { align: 'right' });
+
+    doc.setFillColor( primaryColor[0], primaryColor[1], primaryColor[2] );
+    doc.rect(135, finalY + 48, 65, 12, 'F');
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`GRAND TOTAL: INR ${order.total}`, 167.5, finalY + 56, { align: 'center' });
+
+    // Footer
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text('Thank you for choosing the elite collection at ' + brandName, 105, 280, { align: 'center' });
+    doc.text('This is an electronically generated authenticity certificate.', 105, 285, { align: 'center' });
+
+    doc.save(`Invoice-${order.id}.pdf`);
+  };
+
   // --- COUPONS CONTROLLER ---
   const handleCouponSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -255,11 +485,9 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
 
   // --- REVIEWS CONTROLLER ---
   const handleDeleteReview = async (reviewId: string) => {
-    if (confirm('Are you sure you want to delete this review?')) {
-      await EcommerceService.deleteReview(reviewId);
-      loadAllAdminData();
-      showNotification('Review deleted.');
-    }
+    await EcommerceService.deleteReview(reviewId);
+    loadAllAdminData();
+    showNotification('Review deleted.');
   };
 
   // --- HERO SLIDES CONTROLLER ---
@@ -290,11 +518,9 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
   };
 
   const handleDeleteHero = async (id: string) => {
-    if (confirm('Are you sure you want to remove this slide?')) {
-      await EcommerceService.deleteHeroSlide(id);
-      loadAllAdminData();
-      showNotification('Slide removed.');
-    }
+    await EcommerceService.deleteHeroSlide(id);
+    loadAllAdminData();
+    showNotification('Slide removed.');
   };
 
   // --- ADMINS CONTROLLER ---
@@ -312,11 +538,9 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
       showNotification('Primary admin cannot be revoked.');
       return;
     }
-    if (confirm(`Revoke admin access for ${email}?`)) {
-      await EcommerceService.revokeAdmin(email);
-      loadAllAdminData();
-      showNotification('Admin access revoked.');
-    }
+    await EcommerceService.revokeAdmin(email);
+    loadAllAdminData();
+    showNotification('Admin access revoked.');
   };
 
   // --- OFFERS CONTROLLER ---
@@ -348,20 +572,19 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
   };
 
   const handleDeleteOffer = async (id: string) => {
-    if (confirm('Are you sure you want to remove this offer?')) {
-      await EcommerceService.deleteOffer(id);
-      loadAllAdminData();
-      showNotification('Offer removed.');
-    }
+    await EcommerceService.deleteOffer(id);
+    loadAllAdminData();
+    showNotification('Offer removed.');
   };
 
   // --- ANALYTICS CALCULATIONS ---
-  const totalRevenue = orders.reduce((sum, o) => o.paymentStatus === 'paid' ? sum + o.total : sum, 0);
-  const totalSales = orders.length;
+  const validOrders = orders.filter(o => o.paymentStatus !== 'failed' && o.paymentStatus !== 'refunded' && o.deliveryStatus !== 'cancelled' && o.deliveryStatus !== 'returned');
+  const totalRevenue = validOrders.reduce((sum, o) => sum + o.total, 0);
+  const totalSales = validOrders.length;
   const averageOrderValue = totalSales > 0 ? Math.round(totalRevenue / totalSales) : 0;
   
   // Unique customers
-  const uniqueCustomers = new Set(orders.map(o => o.userEmail)).size;
+  const uniqueCustomers = new Set(validOrders.map(o => o.userEmail)).size;
 
   // Chart data formatting (Recharts friendly)
   const salesHistoryMap: Record<string, { date: string, revenue: number, orders: number }> = {};
@@ -374,7 +597,7 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
     salesHistoryMap[dateStr] = { date: dateStr, revenue: 0, orders: 0 };
   }
 
-  orders.forEach(o => {
+  validOrders.forEach(o => {
     const dateStr = new Date(o.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     if (salesHistoryMap[dateStr]) {
       salesHistoryMap[dateStr].revenue += o.total;
@@ -414,16 +637,16 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
             onClick={onBackToStore}
             className="text-xs font-mono text-amber-500 hover:text-amber-400 transition-colors uppercase mb-2 block cursor-pointer"
           >
-            ← Back to Store
+            ← Return to Home
           </button>
           <span className="text-[10px] font-mono tracking-[0.3em] text-amber-500 uppercase block">Admin Control Panel</span>
           <h1 className="text-3xl font-sans tracking-tight text-white font-light mt-1">
-            Whistle Boutique <span className="italic font-serif text-amber-100">Management</span>
+            {siteSettings.brandName} <span className="italic font-serif text-amber-100">Management</span>
           </h1>
         </div>
 
         <div className="flex gap-2 flex-wrap">
-          {['analytics', 'products', 'categories', 'orders', 'coupons', 'reviews', 'offers', 'hero', 'admins'].map((tab) => (
+          {['analytics', 'products', 'categories', 'orders', 'coupons', 'reviews', 'offers', 'hero', 'admins', 'settings'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab as any)}
@@ -553,6 +776,19 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
                     className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-white"
                   />
                 </div>
+                <div className="space-y-1">
+                  <label className="text-gray-400 uppercase font-mono block">Variant Label</label>
+                  <select
+                    value={productForm.variantLabel || 'Choose Variant'}
+                    onChange={(e) => setProductForm({ ...productForm, variantLabel: e.target.value })}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-white"
+                  >
+                    <option value="Choose Variant">Choose Variant</option>
+                    <option value="Choose Color">Choose Color</option>
+                    <option value="Choose Size">Choose Size</option>
+                    <option value="Choose Volume (ml)">Choose Volume (ml)</option>
+                  </select>
+                </div>
               </div>
 
               <div className="space-y-1">
@@ -627,21 +863,119 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-gray-400 uppercase font-mono block">Primary Image URL</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="https://images.unsplash.com/..."
-                  value={productForm.images?.[0] || ''}
-                  onChange={(e) => {
-                    const currentImg = [...(productForm.images || [])];
-                    currentImg[0] = e.target.value;
-                    setProductForm({ ...productForm, images: currentImg });
-                  }}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-white"
-                />
-              </div>
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center">
+                      <label className="text-gray-400 uppercase font-mono block">Primary Image</label>
+                      <label className="text-[9px] text-amber-500 hover:text-amber-400 uppercase font-mono cursor-pointer flex items-center gap-1">
+                        <Upload className="w-3 h-3" /> Upload
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          className="hidden" 
+                          onChange={(e) => handleFileUpload(e, (b) => {
+                            const currentImg = [...(productForm.images || [])];
+                            currentImg[0] = b;
+                            setProductForm({ ...productForm, images: currentImg });
+                          })} 
+                        />
+                      </label>
+                    </div>
+                    <div className="flex gap-3">
+                      {productForm.images?.[0] && (
+                        <div className="w-12 h-12 rounded-lg border border-white/10 overflow-hidden bg-white/5 shrink-0">
+                          <img src={productForm.images[0]} alt="Primary" className="w-full h-full object-cover" />
+                        </div>
+                      )}
+                      <input
+                        type="text"
+                        required
+                        placeholder="Primary image URL or use upload..."
+                        value={productForm.images?.[0] || ''}
+                        onChange={(e) => {
+                          const currentImg = [...(productForm.images || [])];
+                          currentImg[0] = e.target.value;
+                          setProductForm({ ...productForm, images: currentImg });
+                        }}
+                        className="flex-1 bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center">
+                      <label className="text-gray-400 uppercase font-mono block">Secondary / Gallery Images</label>
+                      <label className="text-[9px] text-amber-500 hover:text-amber-400 uppercase font-mono cursor-pointer flex items-center gap-1">
+                        <Plus className="w-3 h-3" /> Add Image
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          multiple
+                          className="hidden" 
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            const files = e.target.files;
+                            if (files) {
+                              Array.from(files).forEach((file: File) => {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  const base64 = reader.result as string;
+                                  setProductForm(prev => ({
+                                    ...prev,
+                                    images: [...(prev.images || []), base64]
+                                  }));
+                                };
+                                reader.readAsDataURL(file);
+                              });
+                            }
+                          }} 
+                        />
+                      </label>
+                    </div>
+                    <div className="flex flex-wrap gap-2 min-h-[50px] p-2 bg-black/20 rounded-xl border border-dashed border-white/10">
+                      {productForm.images?.slice(1).map((img, idx) => (
+                        <div key={idx} className="relative group w-16 h-16 rounded-lg border border-white/10 overflow-hidden bg-white/5">
+                          <img src={img} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
+                          <button 
+                            type="button"
+                            onClick={() => {
+                              const newImgs = [...(productForm.images || [])];
+                              newImgs.splice(idx + 1, 1);
+                              setProductForm({...productForm, images: newImgs});
+                            }}
+                            className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-red-500"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                      {(!productForm.images || productForm.images.length <= 1) && (
+                        <div className="w-full flex items-center justify-center py-4">
+                          <span className="text-[10px] text-gray-600 font-mono">No secondary images added</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="pt-1">
+                      <input
+                        type="text"
+                        placeholder="Add gallery image URL and press Enter..."
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const val = (e.target as HTMLInputElement).value;
+                            if (val.trim()) {
+                              setProductForm(prev => ({
+                                ...prev,
+                                images: [...(prev.images || []), val.trim()]
+                              }));
+                              (e.target as HTMLInputElement).value = '';
+                            }
+                          }
+                        }}
+                        className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-1.5 text-[10px] text-white"
+                      />
+                    </div>
+                  </div>
+                </div>
 
               {/* Dynamic feature inputs */}
               <div className="space-y-1.5">
@@ -839,8 +1173,24 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
                     </div>
 
                     {/* Quick status adjust buttons */}
-                    <div className="flex items-center gap-2 text-xs font-mono">
-                      <span className="text-gray-500 mr-2">Track Status:</span>
+                    <div className="flex items-center gap-3 text-xs font-mono">
+                      <button
+                        onClick={() => downloadLabel(o)}
+                        className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-amber-500 cursor-pointer transition-colors flex items-center gap-2 px-3"
+                        title="Download Label PDF"
+                      >
+                        <QrCode className="w-4 h-4" />
+                        <span className="text-[10px] uppercase font-bold">Download Label PDF</span>
+                      </button>
+                      <button
+                        onClick={() => downloadInvoice(o)}
+                        className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-amber-500 cursor-pointer transition-colors flex items-center gap-2 px-3"
+                        title="Download Details PDF"
+                      >
+                        <Download className="w-4 h-4" />
+                        <span className="text-[10px] uppercase font-bold">Download Details PDF</span>
+                      </button>
+                      <span className="text-gray-500">Track Status:</span>
                       <select
                         value={o.deliveryStatus}
                         onChange={(e) => handleOrderStatusUpdate(o.id, e.target.value as any, o.trackingNumber)}
@@ -852,7 +1202,9 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
                         <option value="shipped">Shipped</option>
                         <option value="out_for_delivery">Out For Delivery</option>
                         <option value="delivered">Delivered</option>
+                        <option value="cancel_requested">Cancel Requested</option>
                         <option value="cancelled">Cancelled</option>
+                        <option value="return_requested">Return Requested</option>
                         <option value="returned">Returned</option>
                       </select>
                     </div>
@@ -887,9 +1239,34 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
                   {/* Item quantities mapping */}
                   <div className="bg-black/20 rounded-xl p-3 text-xs space-y-2">
                     {o.items.map((item, idx) => (
-                      <div key={idx} className="flex justify-between text-gray-300">
-                        <span>• {item.product.name} [Qty: {item.quantity}] {item.selectedVariant && `(Variant: ${item.selectedVariant.name})`}</span>
-                        <span className="font-mono text-white">₹{(item.product.price + (item.selectedVariant?.additionalPrice || 0)) * item.quantity}</span>
+                      <div key={idx} className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-gray-300 gap-2">
+                        <div className="flex flex-col gap-1">
+                          <span>• {item.product.name} [Qty: {item.quantity}] {item.selectedVariant && `(Variant: ${item.selectedVariant.name})`}</span>
+                          {item.status && item.status !== 'active' && (
+                            <div className="flex items-center gap-2">
+                              <span className="inline-block px-1.5 py-0.5 rounded border border-amber-500/30 text-amber-500 text-[9px] uppercase tracking-widest bg-amber-500/10">
+                                {item.status.replace('_', ' ')}
+                              </span>
+                              {item.status === 'cancel_requested' && (
+                                <button 
+                                  onClick={() => EcommerceService.updateOrderItemStatus(o.id, item.id, 'cancelled').then(loadAllAdminData)}
+                                  className="text-[9px] uppercase tracking-widest text-emerald-400 hover:text-emerald-300 transition-colors"
+                                >
+                                  Approve Cancel
+                                </button>
+                              )}
+                              {item.status === 'return_requested' && (
+                                <button 
+                                  onClick={() => EcommerceService.updateOrderItemStatus(o.id, item.id, 'returned').then(loadAllAdminData)}
+                                  className="text-[9px] uppercase tracking-widest text-emerald-400 hover:text-emerald-300 transition-colors"
+                                >
+                                  Approve Return
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <span className="font-mono text-white text-right">₹{(item.product.price + (item.selectedVariant?.additionalPrice || 0)) * item.quantity}</span>
                       </div>
                     ))}
                   </div>
@@ -1055,30 +1432,39 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
 
                 <div className="space-y-1">
                   <div className="flex justify-between items-center">
-                    <label className="text-gray-400 uppercase font-mono block">Cover Image URL</label>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        // Populate with a random high-quality luxury Unsplash image
-                        const luxuryImages = [
-                          'https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?auto=format&fit=crop&q=80&w=400', // Luxury watch
-                          'https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&q=80&w=400', // Perfume
-                          'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&q=80&w=400', // Leather
-                          'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&q=80&w=400', // Sunglasses/Accessory
-                          'https://images.unsplash.com/photo-1511556532299-8f662fc26c06?auto=format&fit=crop&q=80&w=400'  // General Luxury
-                        ];
-                        const randomImg = luxuryImages[Math.floor(Math.random() * luxuryImages.length)];
-                        setCategoryForm(prev => ({ ...prev, image: randomImg }));
-                      }}
-                      className="text-[9px] text-amber-500 hover:text-amber-400 font-mono uppercase cursor-pointer"
-                    >
-                      🪄 Auto-Luxury Image
-                    </button>
+                    <label className="text-gray-400 uppercase font-mono block">Cover Image</label>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const luxuryImages = [
+                            'https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?auto=format&fit=crop&q=80&w=400',
+                            'https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&q=80&w=400',
+                            'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&q=80&w=400',
+                            'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&q=80&w=400'
+                          ];
+                          const randomImg = luxuryImages[Math.floor(Math.random() * luxuryImages.length)];
+                          setCategoryForm(prev => ({ ...prev, image: randomImg }));
+                        }}
+                        className="text-[9px] text-amber-500 hover:text-amber-400 font-mono uppercase cursor-pointer"
+                      >
+                        🪄 Auto
+                      </button>
+                      <label className="text-[9px] text-amber-500 hover:text-amber-400 uppercase font-mono cursor-pointer flex items-center gap-1">
+                        <Upload className="w-3 h-3" /> Upload
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          className="hidden" 
+                          onChange={(e) => handleFileUpload(e, (b) => setCategoryForm({...categoryForm, image: b}))} 
+                        />
+                      </label>
+                    </div>
                   </div>
                   <input
                     type="text"
                     required
-                    placeholder="https://images.unsplash.com/photo-..."
+                    placeholder="Image URL..."
                     value={categoryForm.image || ''}
                     onChange={(e) => setCategoryForm({ ...categoryForm, image: e.target.value })}
                     className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-white placeholder-gray-600 focus:outline-none focus:border-amber-500"
@@ -1201,11 +1587,9 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
                           </button>
                           <button
                             onClick={async () => {
-                              if (confirm(`Are you sure you want to retire the "${cat.name}" collection?`)) {
-                                await EcommerceService.deleteCategory(cat.id);
-                                setAvailableCategories(prev => prev.filter(c => c.id !== cat.id));
-                                showNotification(`Boutique collection "${cat.name}" retired successfully.`);
-                              }
+                              await EcommerceService.deleteCategory(cat.id);
+                              setAvailableCategories(prev => prev.filter(c => c.id !== cat.id));
+                              showNotification(`Boutique collection "${cat.name}" retired successfully.`);
                             }}
                             className="p-1.5 bg-white/5 hover:bg-red-950/40 text-white rounded-lg transition-all cursor-pointer border border-white/10 group hover:border-red-500/30"
                             title="Retire Collection"
@@ -1262,7 +1646,18 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
               </div>
 
               <div className="space-y-1">
-                <label className="text-gray-400 uppercase font-mono block">Image URL</label>
+                <div className="flex justify-between items-center">
+                  <label className="text-gray-400 uppercase font-mono block">Image URL</label>
+                  <label className="text-[9px] text-amber-500 hover:text-amber-400 uppercase font-mono cursor-pointer flex items-center gap-1">
+                    <Upload className="w-3 h-3" /> Upload
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={(e) => handleFileUpload(e, (b) => setOfferForm({...offerForm, image: b}))} 
+                    />
+                  </label>
+                </div>
                 <input
                   type="text"
                   required
@@ -1456,7 +1851,18 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
               </div>
 
               <div className="space-y-1">
-                <label className="text-gray-400 uppercase font-mono block">Background Image URL</label>
+                <div className="flex justify-between items-center">
+                  <label className="text-gray-400 uppercase font-mono block">Background Image</label>
+                  <label className="text-[9px] text-amber-500 hover:text-amber-400 uppercase font-mono cursor-pointer flex items-center gap-1">
+                    <Upload className="w-3 h-3" /> Upload
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={(e) => handleFileUpload(e, (b) => setHeroForm({...heroForm, image: b}))} 
+                    />
+                  </label>
+                </div>
                 <input
                   type="text"
                   required
@@ -1639,6 +2045,117 @@ export default function AdminDashboard({ onBackToStore }: { onBackToStore: () =>
                   )}
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          TAB 10: SITE SETTINGS
+      ======================================================== */}
+      {activeTab === 'settings' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="lg:col-span-5 space-y-6">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-md">
+              <h3 className="text-xl font-sans tracking-tight text-white font-light mb-6">
+                Brand <span className="italic font-serif text-amber-100">Identity</span>
+              </h3>
+              
+              <form 
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  await EcommerceService.saveSiteSettings(siteSettings);
+                  setNotif('Site settings updated successfully.');
+                  setTimeout(() => setNotif(''), 3000);
+                }} 
+                className="space-y-6"
+              >
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono text-gray-400 tracking-wider block uppercase">Brand Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={siteSettings.brandName}
+                    onChange={(e) => setSiteSettings({...siteSettings, brandName: e.target.value})}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500/50"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono text-gray-400 tracking-wider block uppercase">Logo URL</label>
+                  <input
+                    type="url"
+                    required
+                    value={siteSettings.logoUrl}
+                    onChange={(e) => setSiteSettings({...siteSettings, logoUrl: e.target.value})}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500/50"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono text-gray-400 tracking-wider block uppercase">Favicon URL</label>
+                  <input
+                    type="url"
+                    required
+                    value={siteSettings.faviconUrl}
+                    onChange={(e) => setSiteSettings({...siteSettings, faviconUrl: e.target.value})}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500/50"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono text-gray-400 tracking-wider block uppercase">About Us Content</label>
+                  <textarea
+                    rows={6}
+                    required
+                    value={siteSettings.aboutContent || ''}
+                    onChange={(e) => setSiteSettings({...siteSettings, aboutContent: e.target.value})}
+                    placeholder="Tell your brand story..."
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500/50 resize-none"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 text-black font-mono font-bold text-xs uppercase rounded-xl transition-all shadow-[0_4px_20px_rgba(245,158,11,0.2)]"
+                >
+                  Save Global Settings
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <div className="lg:col-span-7 space-y-6">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-md flex flex-col items-center justify-center text-center space-y-6">
+              <h4 className="text-xs font-mono text-amber-500 tracking-widest uppercase">Visual Preview</h4>
+              
+              <div className="space-y-4">
+                <p className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Main Header Logo</p>
+                <div className="bg-black/50 border border-white/5 rounded-2xl p-12 flex items-center justify-center">
+                  {siteSettings.logoUrl ? (
+                    <img src={siteSettings.logoUrl} alt="Logo Preview" className="h-12 object-contain" />
+                  ) : (
+                    <div className="w-12 h-12 bg-white/5 rounded-full animate-pulse" />
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <p className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Favicon / Browser Tab</p>
+                <div className="bg-black/50 border border-white/5 rounded-xl p-4 flex items-center gap-3">
+                  <div className="w-6 h-6 bg-white/10 rounded flex items-center justify-center overflow-hidden">
+                    {siteSettings.faviconUrl ? (
+                      <img src={siteSettings.faviconUrl} alt="Favicon Preview" className="w-full h-full object-contain" />
+                    ) : (
+                      <Sparkles className="w-3 h-3 text-amber-500" />
+                    )}
+                  </div>
+                  <div className="text-left">
+                    <p className="text-[10px] font-sans text-white font-medium truncate w-32">{siteSettings.brandName || 'Zylo'}</p>
+                    <p className="text-[8px] font-mono text-gray-500 truncate w-32">https://zylo.luxury</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

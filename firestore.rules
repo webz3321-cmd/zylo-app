@@ -59,7 +59,8 @@ service cloud.firestore {
     // Orders: Owner read/create, Admin manage
     match /orders/{orderId} {
       allow create: if isEmailVerified();
-      allow read: if isEmailVerified() && (resource.data.userEmail.lower() == userEmail() || isAdmin());
+      allow get: if isEmailVerified() && (resource.data.userEmail.lower() == userEmail() || isAdmin());
+      allow list: if isEmailVerified() && (request.query.userId == request.auth.uid || isAdmin());
       allow update, delete: if isAdmin();
     }
 
@@ -87,6 +88,12 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
     match /hero/{slideId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Site Settings: Public read, Admin write
+    match /settings/{settingId} {
       allow read: if true;
       allow write: if isAdmin();
     }

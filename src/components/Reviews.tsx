@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Star, ShieldCheck, ThumbsUp, Camera, Check } from 'lucide-react';
+import { Star, ShieldCheck, ThumbsUp, Camera, Check, X } from 'lucide-react';
 import { Review } from '../types';
 import { EcommerceService } from '../lib/ecommerceService';
 
@@ -11,6 +11,7 @@ interface ReviewsProps {
 export default function Reviews({ productId, currentUser }: ReviewsProps) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   
   // Form State
   const [rating, setRating] = useState(5);
@@ -44,13 +45,14 @@ export default function Reviews({ productId, currentUser }: ReviewsProps) {
 
   // Simulated image upload for e-commerce realism
   const handleImageMock = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImageFiles(prev => [...prev, reader.result as string]);
-      };
-      reader.readAsDataURL(file);
+    if (e.target.files) {
+      Array.from(e.target.files).forEach((file) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImageFiles(prev => [...prev, reader.result as string]);
+        };
+        reader.readAsDataURL(file);
+      });
     }
   };
 
@@ -220,14 +222,23 @@ export default function Reviews({ productId, currentUser }: ReviewsProps) {
                     <input 
                       type="file" 
                       accept="image/*" 
+                      multiple
+                      capture="environment"
                       onChange={handleImageMock} 
                       className="hidden" 
                     />
                   </label>
 
                   {imageFiles.map((img, i) => (
-                    <div key={i} className="relative w-12 h-12 rounded-xl overflow-hidden border border-white/10">
+                    <div key={i} className="relative w-12 h-12 rounded-xl overflow-hidden border border-white/10 group">
                       <img src={img} alt="review" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setImageFiles(prev => prev.filter((_, idx) => idx !== i))}
+                        className="absolute top-0.5 right-0.5 p-0.5 bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -299,10 +310,22 @@ export default function Reviews({ productId, currentUser }: ReviewsProps) {
                   {rev.images && rev.images.length > 0 && (
                     <div className="flex gap-2">
                       {rev.images.map((img, idx) => (
-                        <div key={idx} className="w-16 h-16 rounded-lg overflow-hidden border border-white/10 bg-black">
+                        <button 
+                          key={idx} 
+                          onClick={() => setLightboxImage(img)}
+                          className="w-16 h-16 rounded-lg overflow-hidden border border-white/10 bg-black cursor-pointer"
+                        >
                           <img src={img} alt="critique attachment" className="w-full h-full object-cover hover:scale-110 transition-transform duration-300" />
-                        </div>
+                        </button>
                       ))}
+                    </div>
+                  )}
+
+                  {/* Lightbox Modal */}
+                  {lightboxImage && (
+                    <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4" onClick={() => setLightboxImage(null)}>
+                      <button className="absolute top-4 right-4 text-white p-2" onClick={() => setLightboxImage(null)}><X /></button>
+                      <img src={lightboxImage} alt="Expanded" className="max-w-full max-h-full object-contain rounded-lg" />
                     </div>
                   )}
 

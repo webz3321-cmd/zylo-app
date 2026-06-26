@@ -134,6 +134,16 @@
       "properties": {
         "authorizedAt": { "type": "string" }
       }
+    },
+    "SiteSettings": {
+      "title": "SiteSettings",
+      "description": "Global site configuration.",
+      "type": "object",
+      "properties": {
+        "logoUrl": { "type": "string" },
+        "faviconUrl": { "type": "string" },
+        "brandName": { "type": "string" }
+      }
     }
   },
   "firestore": {
@@ -172,6 +182,10 @@
     "/authorized_admins/{email}": {
       "schema": "AuthorizedAdmin",
       "description": "Collection of authorized admin emails."
+    },
+    "/settings/{settingId}": {
+      "schema": "SiteSettings",
+      "description": "Global settings document."
     }
   }
 }

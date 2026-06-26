@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Product, CartItem, User, Category } from './types';
+import { Product, CartItem, User, Category, SiteSettings } from './types';
 import { EcommerceService } from './lib/ecommerceService';
 import Header from './components/Header';
 import Hero from './components/Hero';
@@ -8,6 +8,7 @@ import ProductCard from './components/ProductCard';
 import ProductDetailsModal from './components/ProductDetailsModal';
 import CheckoutModal from './components/CheckoutModal';
 import Dashboard from './components/Dashboard';
+import MyOrders from './components/MyOrders';
 import AdminDashboard from './components/AdminDashboard';
 import FAQ from './components/FAQ';
 import { 
@@ -16,12 +17,13 @@ import {
 
 export default function App() {
   // Navigation & Screens
-  const [activeScreen, setActiveScreen] = useState<'storefront' | 'shop' | 'dashboard' | 'admin' | 'auth'>('storefront');
+  const [activeScreen, setActiveScreen] = useState<'storefront' | 'shop' | 'dashboard' | 'my-orders' | 'admin' | 'auth' | 'about'>('storefront');
   
   // Data State
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
   
   // Cart & Wishlist state
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -37,6 +39,7 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState('featured');
+  const [tempMaxPrice, setTempMaxPrice] = useState(6000);
   const [maxPrice, setMaxPrice] = useState(6000);
   const [inStockOnly, setInStockOnly] = useState(false);
 
@@ -60,7 +63,20 @@ export default function App() {
     loadProducts();
     loadUser();
     loadCartAndWishlist();
+    loadSettings();
   }, []);
+
+  const loadSettings = async () => {
+    const settings = await EcommerceService.getSiteSettings();
+    setSiteSettings(settings);
+    
+    // Apply favicon and title immediately
+    const link = document.querySelector("link[rel~='icon']") || document.createElement('link');
+    (link as HTMLLinkElement).rel = 'icon';
+    (link as HTMLLinkElement).href = settings.faviconUrl;
+    if (!document.head.contains(link)) document.head.appendChild(link);
+    document.title = settings.brandName;
+  };
 
   const loadProducts = async () => {
     const list = await EcommerceService.getProducts();
@@ -87,10 +103,10 @@ export default function App() {
 
   // Redirect to shop page if user interacts with filters on storefront
   useEffect(() => {
-    if (activeScreen === 'storefront' && (selectedCategory !== 'All' || searchQuery !== '' || maxPrice !== 6000 || inStockOnly !== false)) {
+    if (activeScreen === 'storefront' && (selectedCategory !== 'All' || inStockOnly !== false)) {
       setActiveScreen('shop');
     }
-  }, [selectedCategory, searchQuery, maxPrice, inStockOnly, activeScreen]);
+  }, [selectedCategory, inStockOnly, activeScreen]);
 
   // Sync state functions
   const saveCart = (newCart: CartItem[]) => {
@@ -120,6 +136,22 @@ export default function App() {
     setIsCartOpen(true); // Open drawer as direct positive confirmation
     
     // Alert or confirmation toast could be placed here
+  };
+
+  const handleBuyNow = (item: CartItem) => {
+    const existingIdx = cart.findIndex(c => c.id === item.id);
+    const updated = [...cart];
+
+    if (existingIdx >= 0) {
+      updated[existingIdx].quantity += item.quantity;
+    } else {
+      updated.push(item);
+    }
+
+    saveCart(updated);
+    setIsCartOpen(false);
+    setSelectedProduct(null);
+    setIsCheckoutOpen(true);
   };
 
   const handleUpdateCartQuantity = (id: string, delta: number) => {
@@ -346,10 +378,14 @@ export default function App() {
 
   // Filter and sort core product listings
   const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          p.tagline.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          p.category.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
+    const q = searchQuery.toLowerCase().trim();
+    const matchesSearch = !q || p.name.toLowerCase().includes(q) || 
+                          p.tagline.toLowerCase().includes(q) ||
+                          p.category.toLowerCase().includes(q) ||
+                          p.description.toLowerCase().includes(q) ||
+                          (p.keywords && p.keywords.some(k => k.toLowerCase().includes(q)));
+    
+    const matchesCategory = selectedCategory === 'All' || p.category.toLowerCase() === selectedCategory.toLowerCase();
     const matchesPrice = p.price <= maxPrice;
     
     // In-stock criteria checks if any of the variants has stock > 0
@@ -388,14 +424,27 @@ export default function App() {
         cart={cart}
         wishlist={wishlist}
         currentUser={currentUser}
+        logoUrl={siteSettings?.logoUrl}
+        brandName={siteSettings?.brandName}
         onOpenCartDrawer={() => setIsCartOpen(true)}
         onOpenWishlistDrawer={() => setIsWishlistOpen(true)}
         onAuthClick={() => setActiveScreen('auth')}
         onLogout={handleLogout}
         onDashboardClick={() => setActiveScreen('dashboard')}
         onAdminClick={() => setActiveScreen('admin')}
-        onSearchToggle={() => setShowSearchOverlay(true)}
-        onHomeClick={() => setActiveScreen('storefront')}
+        onSearchToggle={() => {
+          setShowSearchOverlay(true);
+          setSelectedCategory('All');
+        }}
+        onAboutClick={() => setActiveScreen('about')}
+        onHomeClick={() => {
+          setActiveScreen('storefront');
+          setSelectedCategory('All');
+          setSearchQuery('');
+          setMaxPrice(6000);
+          setTempMaxPrice(6000);
+          setInStockOnly(false);
+        }}
         onShopClick={() => {
           setSelectedCategory('All');
           setSearchQuery('');
@@ -501,7 +550,7 @@ export default function App() {
             </div>
 
             {/* DYNAMIC CATALOG GRID LAYOUT OR EXQUISITE LIGHT-THEMED SIDEBAR FILTER LAYOUT */}
-            {(selectedCategory !== 'All' || searchQuery.trim() !== '') ? (
+            {(selectedCategory !== 'All' || searchQuery.trim() !== '' || maxPrice !== 6000 || inStockOnly !== false) ? (
               <div 
                 id="interactive-boutique-explorer" 
                 className="bg-white text-gray-900 rounded-3xl p-6 sm:p-8 space-y-6 shadow-[0_10px_50px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden"
@@ -582,15 +631,21 @@ export default function App() {
                     <div className="space-y-2">
                       <div className="flex justify-between text-[10px] font-mono text-gray-500 font-semibold uppercase">
                         <span>Max Price:</span>
-                        <span className="text-amber-700 font-bold">${maxPrice}</span>
+                        <span className="text-amber-700 font-bold">${tempMaxPrice}</span>
                       </div>
                       <input
                         type="range"
                         min={100}
                         max={6000}
                         step={50}
-                        value={maxPrice}
-                        onChange={(e) => setMaxPrice(Number(e.target.value))}
+                        value={tempMaxPrice}
+                        onChange={(e) => setTempMaxPrice(Number(e.target.value))}
+                        onPointerUp={() => {
+                          setMaxPrice(tempMaxPrice);
+                          if (activeScreen === 'storefront') {
+                            setActiveScreen('shop');
+                          }
+                        }}
                         className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-amber-600 border border-transparent"
                       />
                     </div>
@@ -675,11 +730,17 @@ export default function App() {
                   setSelectedCategory={setSelectedCategory}
                   sortBy={sortBy}
                   setSortBy={setSortBy}
-                  maxPrice={maxPrice}
-                  setMaxPrice={setMaxPrice}
+                  maxPrice={tempMaxPrice}
+                  setMaxPrice={setTempMaxPrice}
                   inStockOnly={inStockOnly}
                   setInStockOnly={setInStockOnly}
                   categories={dynamicCategories}
+                  onFilterEnd={() => {
+                    setMaxPrice(tempMaxPrice);
+                    if (activeScreen === 'storefront') {
+                      setActiveScreen('shop');
+                    }
+                  }}
                 />
 
                 {/* PRODUCT RESULTS GRID */}
@@ -822,7 +883,7 @@ export default function App() {
           </div>
 
           {/* DYNAMIC ACCORDION FAQS */}
-          <FAQ />
+          <FAQ brandName={siteSettings?.brandName} />
         </main>
       )}
 
@@ -840,6 +901,9 @@ export default function App() {
                   setActiveScreen('storefront');
                   setSelectedCategory('All');
                   setSearchQuery('');
+                  setMaxPrice(6000);
+                  setTempMaxPrice(6000);
+                  setInStockOnly(false);
                 }}
                 className="hover:text-amber-600 transition-colors cursor-pointer font-bold"
               >
@@ -928,16 +992,19 @@ export default function App() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-[10px] font-mono text-gray-500 font-bold uppercase">
                     <span>Max Price:</span>
-                    <span className="text-amber-700 font-bold">${maxPrice}</span>
+                    <span className="text-amber-700 font-bold">${tempMaxPrice}</span>
                   </div>
                   <input
                     type="range"
                     min={100}
                     max={6000}
                     step={50}
-                    value={maxPrice}
-                    onChange={(e) => setMaxPrice(Number(e.target.value))}
+                    value={tempMaxPrice}
+                    onChange={(e) => setTempMaxPrice(Number(e.target.value))}
                     className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-amber-600 border border-transparent"
+                    onPointerUp={() => {
+                      setMaxPrice(tempMaxPrice);
+                    }}
                   />
                   <div className="flex justify-between text-[9px] font-mono text-gray-400">
                     <span>$100</span>
@@ -984,6 +1051,7 @@ export default function App() {
                       setSearchQuery('');
                       setSelectedCategory('All');
                       setMaxPrice(6000);
+                      setTempMaxPrice(6000);
                       setInStockOnly(false);
                       setSortBy('featured');
                     }}
@@ -1004,6 +1072,7 @@ export default function App() {
                         setSearchQuery('');
                         setSelectedCategory('All');
                         setMaxPrice(6000);
+                        setTempMaxPrice(6000);
                         setInStockOnly(false);
                       }}
                       className="mt-4 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-black font-mono text-[10px] tracking-wider uppercase rounded-xl font-bold transition-all"
@@ -1027,6 +1096,66 @@ export default function App() {
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        </main>
+      )}
+
+      {/* ========================================================
+          SCREEN 1.6: ABOUT US PAGE
+          ======================================================== */}
+      {activeScreen === 'about' && (
+        <main className="min-h-screen bg-black text-white pt-32 pb-24">
+          <div className="max-w-4xl mx-auto px-6 space-y-16">
+            <div className="text-center space-y-4">
+              <span className="text-[10px] font-mono tracking-[0.5em] text-amber-500 uppercase block">The Legend</span>
+              <h1 className="text-4xl md:text-6xl font-sans font-extralight tracking-tight text-white leading-tight">
+                Crafting <span className="italic font-serif text-amber-100/90">Eternity</span>
+              </h1>
+              <div className="w-24 h-px bg-amber-500/30 mx-auto mt-8"></div>
+            </div>
+
+            <div className="prose prose-invert prose-amber max-w-none">
+              <div className="space-y-8 text-lg font-sans font-light leading-relaxed text-gray-300">
+                {siteSettings?.aboutContent ? (
+                  siteSettings.aboutContent.split('\n').map((para, i) => (
+                    para.trim() ? <p key={i}>{para}</p> : <br key={i} />
+                  ))
+                ) : (
+                  <>
+                    <p>
+                      Founded on the principles of extreme rarity and certified provenance, {siteSettings?.brandName || 'Zylo'} serves as the ultimate exhibition hall for the world's most elusive masterpieces. From timepieces that capture the very essence of precision to fragrances that whisper stories of forgotten empires, our curation is a testament to the pursuit of perfection.
+                    </p>
+                    <p>
+                      Every item in our boutique is meticulously verified, individually numbered, and secured with encrypted blockchain-backed credentials. We do not merely sell products; we facilitate the acquisition of heritage. Our patrons are more than customers; they are guardians of craftsmanship that will endure for generations.
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8 border-t border-white/5">
+              <div className="text-center space-y-2">
+                <span className="text-3xl font-serif text-amber-500 italic">100%</span>
+                <p className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Authenticity Certified</p>
+              </div>
+              <div className="text-center space-y-2">
+                <span className="text-3xl font-serif text-amber-500 italic">24/7</span>
+                <p className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Patron Concierge</p>
+              </div>
+              <div className="text-center space-y-2">
+                <span className="text-3xl font-serif text-amber-500 italic">Global</span>
+                <p className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Secured Logistics</p>
+              </div>
+            </div>
+
+            <div className="text-center pt-8">
+              <button 
+                onClick={() => setActiveScreen('shop')}
+                className="px-10 py-4 bg-white text-black font-mono font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-amber-500 transition-all duration-500"
+              >
+                Explore the Collection
+              </button>
             </div>
           </div>
         </main>
@@ -1086,6 +1215,18 @@ export default function App() {
         <Dashboard 
           currentUser={currentUser} 
           onBackToStore={() => setActiveScreen('storefront')} 
+          onGoToMyOrders={() => setActiveScreen('my-orders')}
+          brandName={siteSettings?.brandName}
+        />
+      )}
+
+      {/* ========================================================
+          SCREEN 3.5: MY ORDERS PAGE
+          ======================================================== */}
+      {activeScreen === 'my-orders' && currentUser && (
+        <MyOrders 
+          currentUser={currentUser} 
+          onBackToDashboard={() => setActiveScreen('dashboard')} 
         />
       )}
 
@@ -1112,6 +1253,7 @@ export default function App() {
           isOpen={true}
           onClose={() => setSelectedProduct(null)}
           onAddToCart={handleAddToCart}
+          onBuyNow={handleBuyNow}
           onToggleWishlist={handleToggleWishlist}
           isInWishlist={wishlist.includes(selectedProduct.id)}
           currentUser={currentUser}
@@ -1124,6 +1266,14 @@ export default function App() {
       <CheckoutModal
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
+        onReturnHome={() => {
+          setIsCheckoutOpen(false);
+          setActiveScreen('storefront');
+          setSelectedCategory('All');
+          setSearchQuery('');
+          setMaxPrice(6000);
+          setTempMaxPrice(6000);
+        }}
         cartItems={cart}
         currentUser={currentUser}
         onOrderSuccess={(orderId) => {
@@ -1262,7 +1412,7 @@ export default function App() {
               <div className="flex justify-between items-center border-b border-white/5 pb-4">
                 <div className="flex items-center gap-2">
                   <Heart className="w-5 h-5 text-red-500" />
-                  <h4 className="text-base font-sans font-medium text-white uppercase tracking-wider">Whistle Boutique ({wishlist.length})</h4>
+                  <h4 className="text-base font-sans font-medium text-white uppercase tracking-wider">{siteSettings?.brandName || 'Zylo'} ({wishlist.length})</h4>
                 </div>
                 <button onClick={() => setIsWishlistOpen(false)} className="p-1.5 rounded-full bg-white/5 text-gray-400 hover:text-white cursor-pointer">
                   <X className="w-4 h-4" />
@@ -1326,33 +1476,47 @@ export default function App() {
           <div className="w-full max-w-2xl text-center space-y-6">
             <h3 className="text-xl sm:text-2xl font-sans font-light text-white uppercase tracking-widest">Search Our Private Archives</h3>
             
-            <div className="relative">
+            <div className="relative group">
               <input
                 type="text"
                 autoFocus
-                placeholder="Enter masterpiece keywords..."
+                placeholder="Enter search keywords..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
+                  if (e.key === 'Enter' && searchQuery.trim() !== '') {
+                    setSelectedCategory('All');
                     setShowSearchOverlay(false);
                     setActiveScreen('shop');
                   }
                 }}
-                className="w-full bg-white/5 border-b border-white/20 focus:border-amber-500 text-xl py-4 px-6 text-white text-center focus:outline-none transition-colors"
+                className="w-full bg-white/5 border-b border-white/20 focus:border-amber-500 text-2xl py-6 px-10 text-white text-center focus:outline-none transition-all placeholder:text-gray-600"
               />
+              <button 
+                onClick={() => {
+                  if (searchQuery.trim() !== '') {
+                    setSelectedCategory('All');
+                    setShowSearchOverlay(false);
+                    setActiveScreen('shop');
+                  }
+                }}
+                className="absolute right-0 bottom-4 p-2 text-amber-500 hover:text-amber-400 transition-colors"
+              >
+                <Search className="w-6 h-6" />
+              </button>
             </div>
 
             {searchQuery.trim() !== '' && (
               <div className="flex justify-center pt-2">
                 <button
                   onClick={() => {
+                    setSelectedCategory('All');
                     setShowSearchOverlay(false);
                     setActiveScreen('shop');
                   }}
-                  className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-black text-xs font-mono tracking-widest uppercase rounded-xl transition-all font-bold cursor-pointer"
+                  className="px-10 py-4 bg-amber-500 hover:bg-amber-400 text-black text-sm font-mono tracking-widest uppercase rounded-2xl transition-all font-black cursor-pointer shadow-[0_10px_40px_rgba(245,158,11,0.3)] hover:scale-105"
                 >
-                  Explore in Boutique Salon View
+                  Search results for "{searchQuery}"
                 </button>
               </div>
             )}
@@ -1361,7 +1525,12 @@ export default function App() {
             {searchQuery.trim() !== '' && (
               <div className="bg-white/5 border border-white/10 rounded-2xl p-4 max-h-[300px] overflow-y-auto text-left space-y-2.5 custom-scrollbar">
                 {(() => {
-                  const matches = products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.category.toLowerCase().includes(searchQuery.toLowerCase()));
+                  const q = searchQuery.toLowerCase().trim();
+                  const matches = products.filter(p => 
+                    p.name.toLowerCase().includes(q) || 
+                    p.category.toLowerCase().includes(q) ||
+                    (p.keywords && p.keywords.some(k => k.toLowerCase().includes(q)))
+                  );
                   if (matches.length === 0) return <p className="text-xs text-gray-500 font-mono text-center py-4">No archives found.</p>;
                   
                   return matches.map((p) => (
@@ -1415,10 +1584,10 @@ export default function App() {
           <div className="md:col-span-3 space-y-3 text-left">
             <h5 className="text-white font-mono uppercase tracking-wider text-[10px] font-bold">Explore Ateliers</h5>
             <ul className="space-y-2 text-gray-500">
-              <li><button onClick={() => { setSelectedCategory("Timepieces"); }} className="hover:text-amber-500 transition-colors">Fine Timepieces</button></li>
-              <li><button onClick={() => { setSelectedCategory("Fragrances"); }} className="hover:text-amber-500 transition-colors">Maison Parfum</button></li>
-              <li><button onClick={() => { setSelectedCategory("Leather Goods"); }} className="hover:text-amber-500 transition-colors">Signature Luggage</button></li>
-              <li><button onClick={() => { setSelectedCategory("Accessories"); }} className="hover:text-amber-500 transition-colors">Luxury Accessories</button></li>
+              <li><button onClick={() => { setSelectedCategory("Timepieces"); setActiveScreen("shop"); window.scrollTo(0, 0); }} className="hover:text-amber-500 transition-colors">Fine Timepieces</button></li>
+              <li><button onClick={() => { setSelectedCategory("Fragrances"); setActiveScreen("shop"); window.scrollTo(0, 0); }} className="hover:text-amber-500 transition-colors">Maison Parfum</button></li>
+              <li><button onClick={() => { setSelectedCategory("Leather Goods"); setActiveScreen("shop"); window.scrollTo(0, 0); }} className="hover:text-amber-500 transition-colors">Signature Luggage</button></li>
+              <li><button onClick={() => { setSelectedCategory("Accessories"); setActiveScreen("shop"); window.scrollTo(0, 0); }} className="hover:text-amber-500 transition-colors">Luxury Accessories</button></li>
             </ul>
           </div>
 

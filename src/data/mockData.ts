@@ -19,6 +19,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     isFeatured: true,
     isNew: true,
     isTrending: true,
+    keywords: ["watch", "watches", "timepiece", "clock", "horology", "automatic", "chronograph"],
     features: [
       "Swiss self-winding automatic movement with 72-hour power reserve",
       "Surgical-grade 316L black titanium watch casing",
@@ -55,6 +56,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     isFeatured: true,
     isNew: false,
     isBestSeller: true,
+    keywords: ["perfume", "fragrance", "scent", "smell", "cologne", "parfum", "perfum"],
     features: [
       "Extrait de Parfum concentration (32% precious fragrance oils)",
       "Unisex blend created by master perfumer Antoine Lie",
@@ -89,6 +91,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     ratingCount: 19,
     isFeatured: true,
     isNew: true,
+    keywords: ["bag", "luggage", "travel", "leather", "valise", "suit-case", "suitcase"],
     features: [
       "Hand-selected full-grain Italian Saffiano calf leather",
       "Reinforced base corners with protective metal studs",
@@ -124,6 +127,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     isFeatured: false,
     isNew: true,
     isBestSeller: true,
+    keywords: ["glasses", "sunglasses", "shades", "eyewear", "sun", "aviators"],
     features: [
       "100% UVA/UVB protection with premium polar-filter coating",
       "Handcrafted bio-acetate frame derived from organic wood pulp",
@@ -157,6 +161,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     ratingCount: 31,
     isFeatured: false,
     isNew: false,
+    keywords: ["watch", "watches", "minimalist", "dress watch", "timepiece"],
     features: [
       "High-precision Swiss quartz caliber movement",
       "Ultra-slim 316L hypoallergenic stainless steel casing",
@@ -193,6 +198,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     isFeatured: true,
     isNew: true,
     isTrending: true,
+    keywords: ["perfume", "fragrance", "scent", "oud", "agarwood", "elixir", "perfum"],
     features: [
       "Extremely high concentration of natural organic agarwood oil",
       "Aromatic longevity of over 12+ hours on the skin",
@@ -226,6 +232,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     ratingCount: 47,
     isFeatured: false,
     isNew: false,
+    keywords: ["wallet", "cardholder", "leather", "saffiano", "security", "rfid", "bag"],
     features: [
       "RFID signal blocking security layer built-in",
       "Hand-painted edge lacquering (4 separate layers)",

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Product, Variant, CartItem } from '../types';
-import { X, ShoppingBag, Eye, Heart, Plus, Minus, Star, ChevronRight, Sparkles } from 'lucide-react';
+import { X, ShoppingBag, Eye, Heart, Plus, Minus, Star, ChevronRight } from 'lucide-react';
 import Reviews from './Reviews';
 
 interface ProductDetailsModalProps {
@@ -8,6 +8,7 @@ interface ProductDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAddToCart: (item: CartItem) => void;
+  onBuyNow: (item: CartItem) => void;
   onToggleWishlist: (productId: string) => void;
   isInWishlist: boolean;
   currentUser: any;
@@ -16,7 +17,7 @@ interface ProductDetailsModalProps {
 }
 
 export default function ProductDetailsModal({ 
-  product, isOpen, onClose, onAddToCart, onToggleWishlist, isInWishlist, currentUser, allProducts, onSelectRelated
+  product, isOpen, onClose, onAddToCart, onBuyNow, onToggleWishlist, isInWishlist, currentUser, allProducts, onSelectRelated
 }: ProductDetailsModalProps) {
   const [activeImg, setActiveImg] = useState(product.images[0]);
   const [selectedVariant, setSelectedVariant] = useState<Variant | undefined>(
@@ -46,6 +47,15 @@ export default function ProductDetailsModal({
 
   const handleAddAction = () => {
     onAddToCart({
+      id: `${product.id}-${selectedVariant?.id || 'std'}`,
+      product,
+      selectedVariant,
+      quantity
+    });
+  };
+
+  const handleBuyNowAction = () => {
+    onBuyNow({
       id: `${product.id}-${selectedVariant?.id || 'std'}`,
       product,
       selectedVariant,
@@ -88,16 +98,16 @@ export default function ProductDetailsModal({
             </div>
 
             {/* Thumbnails row */}
-            <div className="flex gap-3">
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-amber-500/20 max-h-[200px] flex-wrap">
               {product.images.map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setActiveImg(img)}
-                  className={`w-18 h-18 rounded-lg overflow-hidden border transition-all cursor-pointer ${
-                    activeImg === img ? 'border-amber-500 scale-102' : 'border-white/10 opacity-60 hover:opacity-100'
+                  className={`w-14 h-14 sm:w-18 sm:h-18 rounded-lg overflow-hidden border transition-all cursor-pointer shrink-0 ${
+                    activeImg === img ? 'border-amber-500 scale-105 shadow-[0_0_15px_rgba(245,158,11,0.3)]' : 'border-white/10 opacity-60 hover:opacity-100'
                   }`}
                 >
-                  <img src={img} alt="thumbnail" className="w-full h-full object-cover" />
+                  <img src={img} alt={`thumbnail ${idx}`} className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>
@@ -195,7 +205,7 @@ export default function ProductDetailsModal({
               {product.variants && product.variants.length > 0 && (
                 <div className="space-y-2 border-t border-white/5 pt-4">
                   <span className="text-[10px] font-mono text-amber-500 tracking-widest uppercase block">
-                    Choose Variant: <span className="text-white font-sans text-xs lowercase ml-1">{selectedVariant?.name}</span>
+                    {product.variantLabel || 'Choose Variant'}: <span className="text-white font-sans text-xs lowercase ml-1">{selectedVariant?.name}</span>
                   </span>
 
                   <div className="flex flex-wrap gap-2.5">
@@ -280,19 +290,27 @@ export default function ProductDetailsModal({
               </div>
 
               {/* CTAs */}
-              <div className="flex gap-4">
+              <div className="flex gap-2 sm:gap-4">
                 <button
                   onClick={handleAddAction}
                   disabled={!selectedVariant || selectedVariant.stock === 0}
-                  className="flex-1 py-4 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black text-xs font-mono tracking-widest uppercase rounded-xl transition-all font-bold cursor-pointer flex items-center justify-center gap-2"
+                  className="flex-1 py-4 px-2 bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-50 text-white text-[10px] sm:text-xs font-mono tracking-widest uppercase rounded-xl transition-all font-bold cursor-pointer flex items-center justify-center gap-1 sm:gap-2"
                 >
-                  <ShoppingBag className="w-4 h-4" />
+                  <ShoppingBag className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span>Add to Cart</span>
                 </button>
 
                 <button
+                  onClick={handleBuyNowAction}
+                  disabled={!selectedVariant || selectedVariant.stock === 0}
+                  className="flex-1 py-4 px-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black text-[10px] sm:text-xs font-mono tracking-widest uppercase rounded-xl transition-all font-bold cursor-pointer flex items-center justify-center"
+                >
+                  <span>Buy Now</span>
+                </button>
+
+                <button
                   onClick={() => onToggleWishlist(product.id)}
-                  className={`p-4 border rounded-xl transition-all cursor-pointer ${
+                  className={`p-4 shrink-0 border rounded-xl transition-all cursor-pointer ${
                     isInWishlist 
                       ? 'border-red-500/40 bg-red-500/10 text-red-500' 
                       : 'border-white/10 bg-white/5 text-gray-400 hover:text-white hover:border-white/20'

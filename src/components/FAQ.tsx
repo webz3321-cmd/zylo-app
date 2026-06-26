@@ -36,8 +36,14 @@ const FAQ_ITEMS: FAQItem[] = [
   }
 ];
 
-export default function FAQ() {
+export default function FAQ({ brandName = 'Zylo' }: { brandName?: string }) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+  const faqs = FAQ_ITEMS.map(item => ({
+    ...item,
+    question: item.question.replace(/Zylo/g, brandName),
+    answer: item.answer.replace(/Zylo/g, brandName)
+  }));
 
   return (
     <div id="faq-section" className="w-full max-w-4xl mx-auto py-16 px-4 sm:px-6">
@@ -50,7 +56,7 @@ export default function FAQ() {
       </div>
 
       <div className="space-y-4">
-        {FAQ_ITEMS.map((item, index) => {
+        {faqs.map((item, index) => {
           const Icon = item.icon;
           const isOpen = activeIndex === index;
 
