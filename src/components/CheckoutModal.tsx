@@ -240,17 +240,17 @@ export default function CheckoutModal({ isOpen, onClose, onReturnHome, cartItems
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1F1F1F]/40 backdrop-blur-md overflow-y-auto font-sans">
       <div 
         id="checkout-modal-wrapper"
-        className="w-full max-w-4xl bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)] grid grid-cols-1 md:grid-cols-12 h-full md:h-auto max-h-[95vh] md:max-h-none"
+        className="w-full max-w-4xl bg-white border border-[#E8E1D6] rounded-2xl overflow-hidden shadow-[0_30px_90px_rgba(0,0,0,0.15)] grid grid-cols-1 md:grid-cols-12 h-full md:h-auto max-h-[95vh] md:max-h-none"
       >
         {/* MOBILE ONLY: STICKY SUMMARY TRIGGER */}
-        <div className="sticky top-0 z-50 md:hidden bg-[#0a0a0a]/95 backdrop-blur-sm border-b border-white/10 p-3 sm:p-4 flex justify-between items-center shrink-0">
+        <div className="sticky top-0 z-50 md:hidden bg-white/95 backdrop-blur-sm border-b border-[#E8E1D6] p-3 sm:p-4 flex justify-between items-center shrink-0">
           <button 
             type="button"
             onClick={() => setShowMobileSummary(!showMobileSummary)}
-            className="flex items-center gap-2 text-[10px] font-mono text-amber-500 uppercase tracking-widest cursor-pointer border border-amber-500/30 px-3 py-1.5 rounded-lg bg-amber-500/5 hover:bg-amber-500/10 transition-colors"
+            className="flex items-center gap-2 text-[10px] font-mono text-[#C9A227] uppercase tracking-widest cursor-pointer border border-[#C9A227]/30 px-3 py-1.5 rounded-lg bg-[#C9A227]/5 hover:bg-[#C9A227]/10 transition-colors font-bold"
           >
             <ShoppingBag className="w-3 h-3" />
             {showMobileSummary ? 'Hide Details' : `Show Details (₹${grandTotal})`}
@@ -258,7 +258,7 @@ export default function CheckoutModal({ isOpen, onClose, onReturnHome, cartItems
           <button 
             type="button" 
             onClick={onReturnHome || onClose} 
-            className="text-gray-500 cursor-pointer p-1.5 hover:bg-white/5 rounded-full transition-colors"
+            className="text-[#666666] cursor-pointer p-1.5 hover:bg-[#F8F5EF] rounded-full transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -266,34 +266,34 @@ export default function CheckoutModal({ isOpen, onClose, onReturnHome, cartItems
 
         {/* MOBILE SUMMARY (Collapsible) */}
         {showMobileSummary && (
-          <div className="md:hidden bg-black p-6 space-y-4 border-b border-white/10 animate-in slide-in-from-top duration-300 shrink-0">
+          <div className="md:hidden bg-[#F8F5EF] p-6 space-y-4 border-b border-[#E8E1D6] animate-in slide-in-from-top duration-300 shrink-0">
             <div className="space-y-4 max-h-[150px] overflow-y-auto custom-scrollbar">
               {cartItems.map((item, index) => (
                 <div key={index} className="flex gap-4 items-center text-[11px]">
-                  <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10 shrink-0 bg-black">
+                  <div className="w-12 h-12 rounded-lg overflow-hidden border border-[#E8E1D6] shrink-0 bg-white shadow-sm">
                     <img src={item.product.images[0]} alt={item.product.name} className="w-full h-full object-cover" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h5 className="text-white truncate font-medium">{item.product.name}</h5>
+                    <h5 className="text-[#1F1F1F] truncate font-bold uppercase tracking-tight">{item.product.name}</h5>
                     {item.selectedVariant && (
-                      <p className="text-gray-500 truncate text-[9px]">{item.selectedVariant.name}</p>
+                      <p className="text-[#666666] truncate text-[9px] font-medium italic">{item.selectedVariant.name}</p>
                     )}
-                    <p className="text-gray-500 font-mono text-[9px]">Qty: {item.quantity}</p>
+                    <p className="text-[#666666] font-mono text-[9px] font-bold">Qty: {item.quantity}</p>
                   </div>
-                  <span className="text-white font-mono text-right shrink-0">₹{(item.product.price + (item.selectedVariant?.additionalPrice || 0)) * item.quantity}</span>
+                  <span className="text-[#1F1F1F] font-mono text-right shrink-0 font-bold">₹{(item.product.price + (item.selectedVariant?.additionalPrice || 0)) * item.quantity}</span>
                 </div>
               ))}
             </div>
             
             {/* Added Pricing Summary here too */}
-            <div className="space-y-2.5 border-t border-white/5 pt-4 text-xs font-mono text-gray-400">
+            <div className="space-y-2.5 border-t border-[#E8E1D6] pt-4 text-xs font-mono text-[#666666]">
               <div className="flex justify-between">
                 <span>Subtotal:</span>
-                <span className="text-white">₹{subtotal}</span>
+                <span className="text-[#1F1F1F] font-bold">₹{subtotal}</span>
               </div>
               
               {discount > 0 && (
-                <div className="flex justify-between text-amber-400">
+                <div className="flex justify-between text-[#C9A227] font-bold">
                   <span>Discount:</span>
                   <span>-₹{discount}</span>
                 </div>
@@ -301,28 +301,28 @@ export default function CheckoutModal({ isOpen, onClose, onReturnHome, cartItems
 
               <div className="flex justify-between">
                 <span>Tax (12%):</span>
-                <span className="text-white">₹{tax}</span>
+                <span className="text-[#1F1F1F] font-bold">₹{tax}</span>
               </div>
 
               <div className="flex justify-between">
                 <span>Shipping:</span>
-                <span className="text-white">{shippingCharge === 0 ? 'FREE' : `₹${shippingCharge}`}</span>
+                <span className="text-[#1F1F1F] font-bold">{shippingCharge === 0 ? 'FREE' : `₹${shippingCharge}`}</span>
               </div>
 
-              <div className="flex justify-between border-t border-white/10 pt-3 text-sm text-white font-bold font-sans">
+              <div className="flex justify-between border-t border-[#E8E1D6] pt-3 text-sm text-[#1F1F1F] font-bold font-sans">
                 <span>Grand Total:</span>
-                <span className="text-amber-500 font-mono">₹{grandTotal}</span>
+                <span className="text-[#C9A227] font-mono font-black">₹{grandTotal}</span>
               </div>
             </div>
           </div>
         )}
 
         {/* Main interactive area */}
-        <div className="col-span-1 md:col-span-7 p-6 sm:p-8 space-y-6 overflow-y-auto flex-1 md:flex-none md:max-h-[700px] border-b md:border-b-0 md:border-r border-white/5 custom-scrollbar">
+        <div className="col-span-1 md:col-span-7 p-6 sm:p-8 space-y-6 overflow-y-auto flex-1 md:flex-none md:max-h-[700px] border-b md:border-b-0 md:border-r border-[#E8E1D6] custom-scrollbar">
           <div className="flex justify-between items-center">
             <div>
-              <span className="text-[10px] font-mono tracking-[0.2em] text-amber-500 uppercase block">Private Checkout</span>
-              <h3 className="text-xl font-sans text-white font-medium tracking-wide">
+              <span className="text-[10px] font-mono tracking-[0.2em] text-[#C9A227] uppercase block font-bold">Private Checkout</span>
+              <h3 className="text-xl font-sans text-[#1F1F1F] font-bold tracking-tight uppercase">
                 {step === 1 && 'Shipping Details'}
                 {step === 2 && 'Secure Payment'}
                 {step === 3 && 'Order Confirmed'}
@@ -331,7 +331,7 @@ export default function CheckoutModal({ isOpen, onClose, onReturnHome, cartItems
             {step !== 3 && (
               <button 
                 onClick={onClose}
-                className="hidden md:flex p-1 rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-amber-500/20 cursor-pointer"
+                className="hidden md:flex p-1.5 rounded-full bg-[#F8F5EF] border border-[#E8E1D6] text-[#666666] hover:text-[#1F1F1F] hover:border-[#C9A227]/20 cursor-pointer shadow-sm transition-all"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -354,22 +354,22 @@ export default function CheckoutModal({ isOpen, onClose, onReturnHome, cartItems
                     {savedAddresses.map((addr, idx) => (
                       <div 
                         key={idx} 
-                        className={`border p-4 rounded-xl cursor-pointer relative group ${selectedAddressIndex === idx ? 'border-amber-500 bg-amber-500/10' : 'border-white/5 bg-black/30'}`}
+                        className={`border p-4 rounded-xl cursor-pointer relative group transition-all shadow-sm ${selectedAddressIndex === idx ? 'border-[#C9A227] bg-[#C9A227]/5' : 'border-[#E8E1D6] bg-[#F8F5EF]'}`}
                         onClick={() => handleAddressSelect(idx)}
                       >
                         <div className="flex gap-2 justify-end absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={(e) => { e.stopPropagation(); handleEditAddress(idx); }} className="text-[10px] text-amber-400 hover:underline">Edit</button>
-                          <button onClick={(e) => { e.stopPropagation(); handleDeleteAddress(idx); }} className="text-[10px] text-red-400 hover:underline">Delete</button>
+                          <button onClick={(e) => { e.stopPropagation(); handleEditAddress(idx); }} className="text-[10px] text-[#C9A227] hover:underline font-bold">Edit</button>
+                          <button onClick={(e) => { e.stopPropagation(); handleDeleteAddress(idx); }} className="text-[10px] text-red-500 hover:underline font-bold">Delete</button>
                         </div>
-                        <p className="text-sm font-medium text-white">{addr.fullName}</p>
-                        <p className="text-xs text-gray-400">{addr.addressLine1}, {addr.addressLine2 ? addr.addressLine2 + ', ' : ''}{addr.city}, {addr.district}, {addr.state} - {addr.postalCode}</p>
+                        <p className="text-sm font-bold text-[#1F1F1F] uppercase tracking-tight">{addr.fullName}</p>
+                        <p className="text-xs text-[#666666] font-medium">{addr.addressLine1}, {addr.addressLine2 ? addr.addressLine2 + ', ' : ''}{addr.city}, {addr.district}, {addr.state} - {addr.postalCode}</p>
                       </div>
                     ))}
                   </div>
                   
                   <button 
                     onClick={handleAddNewAddress}
-                    className="w-full py-3 border border-dashed border-white/20 rounded-xl text-xs text-gray-400 hover:border-amber-500 hover:text-amber-500 transition-all cursor-pointer"
+                    className="w-full py-3 border border-dashed border-[#E8E1D6] rounded-xl text-xs text-[#666666] hover:border-[#C9A227] hover:text-[#C9A227] transition-all cursor-pointer font-bold uppercase tracking-widest"
                   >
                     + Add New Address
                   </button>
@@ -377,7 +377,7 @@ export default function CheckoutModal({ isOpen, onClose, onReturnHome, cartItems
                   {selectedAddressIndex !== null && (
                     <button
                       onClick={() => setStep(2)}
-                      className="w-full py-4.5 bg-amber-500 hover:bg-amber-400 text-black text-xs font-mono tracking-widest uppercase rounded-xl transition-all font-bold cursor-pointer shadow-[0_4px_20px_rgba(245,158,11,0.2)]"
+                      className="w-full py-4.5 bg-[#C9A227] hover:bg-[#B68D1F] text-white text-xs font-mono tracking-widest uppercase rounded-xl transition-all font-bold cursor-pointer shadow-md shadow-[#C9A227]/20"
                     >
                       Proceed to Secure Payment
                     </button>
@@ -386,50 +386,50 @@ export default function CheckoutModal({ isOpen, onClose, onReturnHome, cartItems
               ) : (
                 <form onSubmit={(e) => { e.preventDefault(); setIsEditingAddress(false); }} className="space-y-4">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-mono text-gray-400 tracking-wider block uppercase">Full Name</label>
-                    <input type="text" required placeholder="Full Name" value={address.fullName} onChange={(e) => setAddress({ ...address, fullName: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-amber-500/50" />
+                    <label className="text-[10px] font-mono text-[#666666] tracking-wider block uppercase font-bold">Full Name</label>
+                    <input type="text" required placeholder="Full Name" value={address.fullName} onChange={(e) => setAddress({ ...address, fullName: e.target.value })} className="w-full bg-[#F8F5EF] border border-[#E8E1D6] rounded-xl px-4 py-2.5 text-xs sm:text-sm text-[#1F1F1F] placeholder-gray-400 focus:outline-none focus:border-[#C9A227]/50 font-medium" />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 tracking-wider block uppercase">Mobile Phone</label>
-                      <input type="tel" required placeholder="+1 (555) 019-900" value={address.phone} onChange={(e) => setAddress({ ...address, phone: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-amber-500/50" />
+                      <label className="text-[10px] font-mono text-[#666666] tracking-wider block uppercase font-bold">Mobile Phone</label>
+                      <input type="tel" required placeholder="+91 00000 00000" value={address.phone} onChange={(e) => setAddress({ ...address, phone: e.target.value })} className="w-full bg-[#F8F5EF] border border-[#E8E1D6] rounded-xl px-4 py-2.5 text-xs sm:text-sm text-[#1F1F1F] placeholder-gray-400 focus:outline-none focus:border-[#C9A227]/50 font-mono" />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 tracking-wider block uppercase">Country</label>
-                      <select value={address.country} onChange={(e) => setAddress({ ...address, country: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-amber-500/50 appearance-none">
+                      <label className="text-[10px] font-mono text-[#666666] tracking-wider block uppercase font-bold">Country</label>
+                      <select value={address.country} onChange={(e) => setAddress({ ...address, country: e.target.value })} className="w-full bg-[#F8F5EF] border border-[#E8E1D6] rounded-xl px-4 py-2.5 text-xs sm:text-sm text-[#1F1F1F] focus:outline-none focus:border-[#C9A227]/50 appearance-none font-bold uppercase tracking-wider">
                         <option value="India">India</option>
                       </select>
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-mono text-gray-400 tracking-wider block uppercase">Shipping Address Line 1</label>
-                    <input type="text" required placeholder="Street name, luxury penthouse suite..." value={address.addressLine1} onChange={(e) => setAddress({ ...address, addressLine1: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-amber-500/50" />
+                    <label className="text-[10px] font-mono text-[#666666] tracking-wider block uppercase font-bold">Shipping Address Line 1</label>
+                    <input type="text" required placeholder="Street name, luxury penthouse suite..." value={address.addressLine1} onChange={(e) => setAddress({ ...address, addressLine1: e.target.value })} className="w-full bg-[#F8F5EF] border border-[#E8E1D6] rounded-xl px-4 py-2.5 text-xs sm:text-sm text-[#1F1F1F] placeholder-gray-400 focus:outline-none focus:border-[#C9A227]/50 font-medium" />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-mono text-gray-400 tracking-wider block uppercase">Suite / Apartment (Optional)</label>
-                    <input type="text" placeholder="Floor 4B, private dock access..." value={address.addressLine2} onChange={(e) => setAddress({ ...address, addressLine2: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-amber-500/50" />
+                    <label className="text-[10px] font-mono text-[#666666] tracking-wider block uppercase font-bold">Suite / Apartment (Optional)</label>
+                    <input type="text" placeholder="Floor 4B, private dock access..." value={address.addressLine2} onChange={(e) => setAddress({ ...address, addressLine2: e.target.value })} className="w-full bg-[#F8F5EF] border border-[#E8E1D6] rounded-xl px-4 py-2.5 text-xs sm:text-sm text-[#1F1F1F] placeholder-gray-400 focus:outline-none focus:border-[#C9A227]/50 font-medium" />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 tracking-wider block uppercase">City</label>
-                      <input type="text" required placeholder="New York" value={address.city} onChange={(e) => setAddress({ ...address, city: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-amber-500/50" />
+                      <label className="text-[10px] font-mono text-[#666666] tracking-wider block uppercase font-bold">City</label>
+                      <input type="text" required placeholder="New York" value={address.city} onChange={(e) => setAddress({ ...address, city: e.target.value })} className="w-full bg-[#F8F5EF] border border-[#E8E1D6] rounded-xl px-4 py-2.5 text-xs sm:text-sm text-[#1F1F1F] placeholder-gray-400 focus:outline-none focus:border-[#C9A227]/50 font-bold" />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 tracking-wider block uppercase">District</label>
-                      <input type="text" required placeholder="District" value={address.district || ''} onChange={(e) => setAddress({ ...address, district: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-amber-500/50" />
+                      <label className="text-[10px] font-mono text-[#666666] tracking-wider block uppercase font-bold">District</label>
+                      <input type="text" required placeholder="District" value={address.district || ''} onChange={(e) => setAddress({ ...address, district: e.target.value })} className="w-full bg-[#F8F5EF] border border-[#E8E1D6] rounded-xl px-4 py-2.5 text-xs sm:text-sm text-[#1F1F1F] placeholder-gray-400 focus:outline-none focus:border-[#C9A227]/50 font-bold" />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 tracking-wider block uppercase">State</label>
-                      <input type="text" required placeholder="NY" value={address.state} onChange={(e) => setAddress({ ...address, state: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-amber-500/50" />
+                      <label className="text-[10px] font-mono text-[#666666] tracking-wider block uppercase font-bold">State</label>
+                      <input type="text" required placeholder="NY" value={address.state} onChange={(e) => setAddress({ ...address, state: e.target.value })} className="w-full bg-[#F8F5EF] border border-[#E8E1D6] rounded-xl px-4 py-2.5 text-xs sm:text-sm text-[#1F1F1F] placeholder-gray-400 focus:outline-none focus:border-[#C9A227]/50 font-bold" />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 tracking-wider block uppercase">Pincode</label>
-                      <input type="text" required placeholder="10001" value={address.postalCode} onChange={(e) => handlePincodeChange(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-amber-500/50" />
+                      <label className="text-[10px] font-mono text-[#666666] tracking-wider block uppercase font-bold">Pincode</label>
+                      <input type="text" required placeholder="100011" value={address.postalCode} onChange={(e) => handlePincodeChange(e.target.value)} className="w-full bg-[#F8F5EF] border border-[#E8E1D6] rounded-xl px-4 py-2.5 text-xs sm:text-sm text-[#1F1F1F] placeholder-gray-400 focus:outline-none focus:border-[#C9A227]/50 font-mono font-bold" />
                     </div>
                   </div>
                   <div className="flex gap-4">
-                    <button type="button" onClick={() => setIsEditingAddress(false)} className="flex-1 py-3 border border-white/10 text-white text-xs uppercase rounded-xl">Cancel</button>
-                    <button type="submit" className="flex-1 py-3 bg-amber-500 text-black text-xs uppercase rounded-xl font-bold">Save Address</button>
+                    <button type="button" onClick={() => setIsEditingAddress(false)} className="flex-1 py-3 border border-[#E8E1D6] text-[#1F1F1F] text-xs uppercase rounded-xl font-bold tracking-widest cursor-pointer hover:bg-[#F8F5EF] transition-all">Cancel</button>
+                    <button type="submit" className="flex-1 py-3 bg-[#C9A227] text-white text-xs uppercase rounded-xl font-bold tracking-widest cursor-pointer hover:bg-[#B68D1F] transition-all shadow-sm">Save Address</button>
                   </div>
                 </form>
               )}
@@ -439,13 +439,13 @@ export default function CheckoutModal({ isOpen, onClose, onReturnHome, cartItems
           {/* STEP 2: PAYMENT METHOD (COD ONLY) */}
           {step === 2 && (
             <form onSubmit={handlePaymentSubmit} className="space-y-6">
-              <div className="border border-amber-500/30 bg-amber-500/5 rounded-2xl p-8 text-center space-y-4">
-                <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center mx-auto">
+              <div className="border border-[#C9A227]/30 bg-[#C9A227]/5 rounded-2xl p-8 text-center space-y-4 shadow-sm">
+                <div className="w-16 h-16 rounded-full bg-[#C9A227]/10 border border-[#C9A227]/20 text-[#C9A227] flex items-center justify-center mx-auto">
                   <ShoppingBag className="w-8 h-8" />
                 </div>
                 <div className="space-y-2">
-                  <h4 className="text-xl font-sans text-white uppercase tracking-widest font-light">Cash On Delivery</h4>
-                  <p className="text-xs text-gray-400 max-w-xs mx-auto leading-relaxed">
+                  <h4 className="text-xl font-sans text-[#1F1F1F] uppercase tracking-widest font-bold">Cash On Delivery</h4>
+                  <p className="text-xs text-[#666666] max-w-xs mx-auto leading-relaxed font-medium">
                     You will pay for your order in cash at the time of delivery to your provided address.
                   </p>
                 </div>
@@ -455,18 +455,18 @@ export default function CheckoutModal({ isOpen, onClose, onReturnHome, cartItems
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="px-8 py-4 border border-white/10 text-white text-xs font-mono tracking-widest uppercase rounded-xl hover:border-white/20 hover:bg-white/5 transition-all cursor-pointer"
+                  className="px-8 py-4 border border-[#E8E1D6] text-[#1F1F1F] text-xs font-mono tracking-widest uppercase rounded-xl hover:border-[#C9A227]/40 hover:bg-[#F8F5EF] transition-all cursor-pointer font-bold"
                 >
                   Back
                 </button>
                 <button
                   type="submit"
                   disabled={isProcessing}
-                  className="flex-1 py-4 bg-amber-500 hover:bg-amber-400 text-black text-xs font-mono tracking-widest uppercase rounded-xl transition-all font-black cursor-pointer disabled:opacity-55 flex items-center justify-center gap-2 shadow-[0_10px_40px_rgba(245,158,11,0.3)]"
+                  className="flex-1 py-4 bg-[#C9A227] hover:bg-[#B68D1F] text-white text-xs font-mono tracking-widest uppercase rounded-xl transition-all font-bold cursor-pointer disabled:opacity-55 flex items-center justify-center gap-2 shadow-md shadow-[#C9A227]/20"
                 >
                   {isProcessing ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       <span>Confirming Order...</span>
                     </>
                   ) : (
@@ -480,37 +480,37 @@ export default function CheckoutModal({ isOpen, onClose, onReturnHome, cartItems
           {/* STEP 3: SUCCESS CONFIRMATION */}
           {step === 3 && completedOrder && (
             <div className="text-center py-8 space-y-6">
-              <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(16,185,129,0.2)] animate-bounce">
+              <div className="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-sm animate-bounce">
                 <Check className="w-8 h-8" />
               </div>
 
               <div className="space-y-2">
-                <h4 className="text-2xl font-sans font-light text-white">Order Confirmed</h4>
-                <p className="text-sm text-amber-500 font-mono tracking-widest uppercase font-black">
+                <h4 className="text-2xl font-sans font-bold text-[#1F1F1F] uppercase tracking-tight">Order Confirmed</h4>
+                <p className="text-sm text-[#C9A227] font-mono tracking-widest uppercase font-black">
                   Your order is safely proceed to home
                 </p>
-                <p className="text-xs text-gray-400 max-w-md mx-auto">
+                <p className="text-xs text-[#666666] max-w-md mx-auto font-medium">
                   An order confirmation has been sent to your email. Our delivery team will contact you soon.
                 </p>
               </div>
 
               {/* Order Invoice info */}
-              <div className="border border-white/5 bg-white/5 rounded-2xl p-5 text-left space-y-3 font-mono text-[11px] text-gray-300">
-                <div className="flex justify-between border-b border-white/5 pb-2">
-                  <span>Order ID:</span>
-                  <span className="text-white font-bold">{completedOrder.id}</span>
+              <div className="border border-[#E8E1D6] bg-[#F8F5EF] rounded-2xl p-5 text-left space-y-3 font-mono text-[11px] text-[#666666] shadow-sm">
+                <div className="flex justify-between border-b border-[#E8E1D6] pb-2">
+                  <span className="font-bold">Order ID:</span>
+                  <span className="text-[#1F1F1F] font-black">{completedOrder.id}</span>
                 </div>
-                <div className="flex justify-between border-b border-white/5 pb-2">
-                  <span>Tracking Number:</span>
-                  <span className="text-amber-400 font-bold">{completedOrder.trackingNumber}</span>
+                <div className="flex justify-between border-b border-[#E8E1D6] pb-2">
+                  <span className="font-bold">Tracking Number:</span>
+                  <span className="text-[#C9A227] font-black">{completedOrder.trackingNumber}</span>
                 </div>
-                <div className="flex justify-between border-b border-white/5 pb-2">
-                  <span>Delivery Address:</span>
-                  <span className="text-white text-right max-w-[200px]">{completedOrder.shippingAddress.addressLine1}, {completedOrder.shippingAddress.city}, {completedOrder.shippingAddress.state} - {completedOrder.shippingAddress.postalCode}</span>
+                <div className="flex justify-between border-b border-[#E8E1D6] pb-2">
+                  <span className="font-bold">Delivery Address:</span>
+                  <span className="text-[#1F1F1F] text-right max-w-[200px] font-bold">{completedOrder.shippingAddress.addressLine1}, {completedOrder.shippingAddress.city}, {completedOrder.shippingAddress.state} - {completedOrder.shippingAddress.postalCode}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Payment Settled:</span>
-                  <span className="text-emerald-400 font-bold">₹{completedOrder.total}</span>
+                  <span className="font-bold">Payment Settled:</span>
+                  <span className="text-emerald-600 font-black">₹{completedOrder.total}</span>
                 </div>
               </div>
 
@@ -522,7 +522,7 @@ export default function CheckoutModal({ isOpen, onClose, onReturnHome, cartItems
                     onClose();
                   }
                 }}
-                className="w-full py-4 bg-white hover:bg-gray-100 text-black text-xs font-mono tracking-widest uppercase rounded-xl transition-all font-bold cursor-pointer"
+                className="w-full py-4 bg-[#1F1F1F] hover:bg-black text-white text-xs font-mono tracking-widest uppercase rounded-xl transition-all font-bold cursor-pointer shadow-lg"
               >
                 Return To Home
               </button>
@@ -531,8 +531,8 @@ export default function CheckoutModal({ isOpen, onClose, onReturnHome, cartItems
         </div>
 
         {/* SIDEBAR: RESERVATION SUMMARY (Desktop Only) */}
-        <div className="hidden md:block col-span-1 md:col-span-5 bg-black/80 p-6 sm:p-8 space-y-6">
-          <h4 className="text-sm font-mono text-amber-500 tracking-widest uppercase border-b border-white/5 pb-3">
+        <div className="hidden md:block col-span-1 md:col-span-5 bg-[#F8F5EF] p-6 sm:p-8 space-y-6">
+          <h4 className="text-sm font-mono text-[#C9A227] tracking-widest uppercase border-b border-[#E8E1D6] pb-3 font-bold">
             Order Summary ({cartItems.length})
           </h4>
 
@@ -545,19 +545,19 @@ export default function CheckoutModal({ isOpen, onClose, onReturnHome, cartItems
 
               return (
                 <div key={index} className="flex gap-4 items-start text-xs">
-                  <div className="w-14 h-14 rounded-xl overflow-hidden border border-white/10 shrink-0 bg-black">
+                  <div className="w-14 h-14 rounded-xl overflow-hidden border border-[#E8E1D6] shrink-0 bg-white shadow-sm">
                     <img src={item.product.images[0]} alt={item.product.name} className="w-full h-full object-cover" />
                   </div>
                   <div className="flex-1 min-w-0 space-y-1">
-                    <h5 className="text-white font-sans font-medium truncate tracking-wide">{item.product.name}</h5>
+                    <h5 className="text-[#1F1F1F] font-sans font-bold truncate tracking-tight uppercase">{item.product.name}</h5>
                     {item.selectedVariant && (
-                      <p className="text-[10px] text-gray-400 font-mono">
+                      <p className="text-[10px] text-[#666666] font-mono font-medium italic">
                         {item.selectedVariant.name}
                       </p>
                     )}
-                    <p className="text-[10px] text-gray-500 font-mono">Qty: {item.quantity}</p>
+                    <p className="text-[10px] text-[#666666] font-mono font-bold">Qty: {item.quantity}</p>
                   </div>
-                  <span className="font-mono text-white text-right shrink-0">₹{price * item.quantity}</span>
+                  <span className="font-mono text-[#1F1F1F] text-right shrink-0 font-bold">₹{price * item.quantity}</span>
                 </div>
               );
             })}
@@ -565,16 +565,16 @@ export default function CheckoutModal({ isOpen, onClose, onReturnHome, cartItems
 
           {/* Coupons section */}
           {step === 1 && (
-            <div className="border-t border-b border-white/5 py-4 space-y-2.5">
-              <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider block">Promo Credentials</span>
+            <div className="border-t border-b border-[#E8E1D6] py-4 space-y-2.5">
+              <span className="text-[10px] font-mono text-[#666666] uppercase tracking-wider block font-bold">Promo Credentials</span>
               
               {appliedCoupon ? (
-                <div className="flex items-center justify-between border border-amber-500/30 bg-amber-500/5 rounded-xl p-2 text-xs text-amber-400">
+                <div className="flex items-center justify-between border border-[#C9A227]/30 bg-[#C9A227]/5 rounded-xl p-2 text-xs text-[#C9A227]">
                   <span className="font-mono font-bold">{appliedCoupon.code} Applied</span>
                   <button 
                     type="button" 
                     onClick={handleRemoveCoupon}
-                    className="text-[10px] uppercase font-mono text-red-400 underline p-1 hover:text-red-300 cursor-pointer"
+                    className="text-[10px] uppercase font-mono text-red-500 underline p-1 hover:text-red-600 cursor-pointer font-bold"
                   >
                     Remove
                   </button>
@@ -587,18 +587,18 @@ export default function CheckoutModal({ isOpen, onClose, onReturnHome, cartItems
                       placeholder="LUXURY10, ROYALTY..."
                       value={couponCode}
                       onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                      className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500/50 uppercase"
+                      className="flex-1 bg-white border border-[#E8E1D6] rounded-lg px-3 py-1.5 text-xs text-[#1F1F1F] focus:outline-none focus:border-[#C9A227]/50 uppercase font-bold"
                     />
                     <button
                       type="button"
                       onClick={handleApplyCoupon}
-                      className="px-3 py-1.5 bg-white text-black font-mono text-xs uppercase rounded-lg hover:bg-gray-200 transition-colors cursor-pointer font-bold"
+                      className="px-3 py-1.5 bg-[#1F1F1F] text-white font-mono text-xs uppercase rounded-lg hover:bg-black transition-colors cursor-pointer font-bold"
                     >
                       Apply
                     </button>
                   </div>
                   {couponError && (
-                    <span className="text-[10px] text-red-400 block font-sans">{couponError}</span>
+                    <span className="text-[10px] text-red-500 block font-sans font-bold">{couponError}</span>
                   )}
                 </div>
               )}
@@ -606,14 +606,14 @@ export default function CheckoutModal({ isOpen, onClose, onReturnHome, cartItems
           )}
 
           {/* Pricing list */}
-          <div className="space-y-2.5 border-t border-white/5 pt-4 text-xs font-mono text-gray-400">
+          <div className="space-y-2.5 border-t border-[#E8E1D6] pt-4 text-xs font-mono text-[#666666]">
             <div className="flex justify-between">
               <span>Subtotal:</span>
-              <span className="text-white">₹{subtotal}</span>
+              <span className="text-[#1F1F1F] font-bold">₹{subtotal}</span>
             </div>
             
             {discount > 0 && (
-              <div className="flex justify-between text-amber-400">
+              <div className="flex justify-between text-[#C9A227] font-bold">
                 <span>Discount:</span>
                 <span>-₹{discount}</span>
               </div>
@@ -621,17 +621,17 @@ export default function CheckoutModal({ isOpen, onClose, onReturnHome, cartItems
 
             <div className="flex justify-between">
               <span>Tax (12%):</span>
-              <span className="text-white">₹{tax}</span>
+              <span className="text-[#1F1F1F] font-bold">₹{tax}</span>
             </div>
 
             <div className="flex justify-between">
               <span>Shipping:</span>
-              <span className="text-white">{shippingCharge === 0 ? 'FREE' : `₹${shippingCharge}`}</span>
+              <span className="text-[#1F1F1F] font-bold">{shippingCharge === 0 ? 'FREE' : `₹${shippingCharge}`}</span>
             </div>
 
-            <div className="flex justify-between border-t border-white/10 pt-3 text-sm text-white font-bold font-sans">
+            <div className="flex justify-between border-t border-[#E8E1D6] pt-3 text-sm text-[#1F1F1F] font-bold font-sans">
               <span>Grand Total:</span>
-              <span className="text-amber-500 font-mono">₹{grandTotal}</span>
+              <span className="text-[#C9A227] font-mono font-black">₹{grandTotal}</span>
             </div>
           </div>
         </div>

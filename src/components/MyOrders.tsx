@@ -41,19 +41,19 @@ export default function MyOrders({ currentUser, onBackToDashboard }: MyOrdersPro
   };
 
   return (
-    <div className="min-h-screen pt-44 pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-12 bg-[#030303] text-gray-100">
-      <div className="flex items-center gap-4 border-b border-white/5 pb-8">
+    <div className="min-h-screen pt-44 pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-12 bg-[#F8F5EF] text-[#1F1F1F]">
+      <div className="flex items-center gap-4 border-b border-[#E8E1D6] pb-8">
         <button 
           onClick={onBackToDashboard}
-          className="flex items-center gap-2 text-xs font-mono text-amber-500 hover:text-amber-400 transition-colors cursor-pointer uppercase"
+          className="flex items-center gap-2 text-xs font-mono text-[#C9A227] hover:text-[#B68D1F] transition-colors cursor-pointer uppercase font-bold"
         >
           <ArrowLeft className="w-4 h-4" /> Back to Dashboard
         </button>
-        <h1 className="text-3xl font-sans tracking-tight text-white font-light">My Order History</h1>
+        <h1 className="text-3xl font-sans tracking-tight text-[#1F1F1F] font-bold uppercase">My Order History</h1>
       </div>
 
       {notif && (
-        <div className="border border-emerald-500/20 bg-emerald-950/20 rounded-xl p-4 text-xs text-emerald-400 flex items-center gap-2 max-w-xl">
+        <div className="border border-emerald-100 bg-emerald-50 rounded-xl p-4 text-xs text-emerald-600 flex items-center gap-2 max-w-xl font-bold shadow-sm">
           <CheckCircle className="w-4 h-4 shrink-0" />
           <span>{notif}</span>
         </div>
@@ -62,16 +62,18 @@ export default function MyOrders({ currentUser, onBackToDashboard }: MyOrdersPro
       {/* TRACKING */}
       {activeTrackingOrderId && (
         <div className="space-y-4">
-          <h4 className="text-xs font-mono text-amber-500 tracking-widest uppercase">Live Delivery Tracker</h4>
+          <h4 className="text-xs font-mono text-[#C9A227] tracking-widest uppercase font-bold">Live Delivery Tracker</h4>
           {(() => {
             const order = orders.find(o => o.id === activeTrackingOrderId);
             if (order) {
               return (
-                <OrderTracking 
-                  status={order.deliveryStatus} 
-                  trackingNumber={order.trackingNumber} 
-                  orderDate={order.createdAt} 
-                />
+                <div className="bg-white border border-[#E8E1D6] rounded-2xl p-6 shadow-sm">
+                  <OrderTracking 
+                    status={order.deliveryStatus} 
+                    trackingNumber={order.trackingNumber} 
+                    orderDate={order.createdAt} 
+                  />
+                </div>
               );
             }
             return null;
@@ -81,9 +83,9 @@ export default function MyOrders({ currentUser, onBackToDashboard }: MyOrdersPro
 
       {/* ORDERS LIST */}
       {orders.length === 0 ? (
-        <div className="text-center py-16 border border-dashed border-white/5 rounded-2xl text-gray-500 space-y-3">
-          <Package className="w-10 h-10 mx-auto opacity-30" />
-          <p className="text-sm font-sans font-light">You haven't placed any orders yet.</p>
+        <div className="text-center py-16 border border-dashed border-[#E8E1D6] rounded-2xl text-[#666666] space-y-3 bg-white/50">
+          <Package className="w-10 h-10 mx-auto opacity-30 text-[#C9A227]" />
+          <p className="text-sm font-sans font-bold uppercase tracking-tight">You haven't placed any orders yet.</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -92,25 +94,25 @@ export default function MyOrders({ currentUser, onBackToDashboard }: MyOrdersPro
             return (
               <div 
                 key={order.id} 
-                className={`border rounded-2xl p-5 border-white/5 bg-white/5 hover:border-white/15 transition-all`}
+                className={`border rounded-2xl p-6 transition-all shadow-sm ${isCurrentlyTracking ? 'border-[#C9A227] bg-white' : 'border-[#E8E1D6] bg-white hover:border-[#C9A227]/30'}`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="space-y-1">
-                    <span className="text-xs font-mono font-bold text-white uppercase">{order.id}</span>
-                    <p className="text-xs text-gray-400">{new Date(order.createdAt).toLocaleDateString()} • ₹{order.total}</p>
-                    <span className="text-[10px] uppercase text-amber-500 tracking-widest">{order.deliveryStatus.replace('_', ' ')}</span>
+                    <span className="text-sm font-mono font-black text-[#1F1F1F] uppercase">{order.id}</span>
+                    <p className="text-xs text-[#666666] font-bold uppercase tracking-tight">{new Date(order.createdAt).toLocaleDateString()} • <span className="text-[#C9A227]">₹{order.total}</span></p>
+                    <span className="text-[10px] font-black uppercase text-[#C9A227] tracking-[0.2em]">{order.deliveryStatus.replace('_', ' ')}</span>
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setActiveTrackingOrderId(isCurrentlyTracking ? null : order.id)}
-                      className={`px-3 py-1.5 rounded-lg border font-mono text-[10px] uppercase transition-all ${
-                        isCurrentlyTracking ? 'bg-amber-500 text-black' : 'border-white/10 text-gray-300'
+                      className={`px-5 py-2.5 rounded-lg border font-mono text-[10px] uppercase transition-all font-black tracking-widest cursor-pointer shadow-sm ${
+                        isCurrentlyTracking ? 'bg-[#C9A227] text-white border-[#C9A227]' : 'border-[#E8E1D6] text-[#1F1F1F] bg-[#F8F5EF] hover:bg-white'
                       }`}
                     >
-                      Track
+                      {isCurrentlyTracking ? 'Close Tracker' : 'Track Order'}
                     </button>
                     {['pending', 'confirmed'].includes(order.deliveryStatus) && (
-                      <button onClick={() => handleCancelOrder(order.id)} className="px-3 py-1.5 rounded-lg border border-red-500/30 text-red-400 font-mono text-[10px] uppercase">Cancel</button>
+                      <button onClick={() => handleCancelOrder(order.id)} className="px-5 py-2.5 rounded-lg border border-red-100 text-red-500 font-mono text-[10px] uppercase font-black tracking-widest hover:bg-red-50 transition-all cursor-pointer">Cancel</button>
                     )}
                   </div>
                 </div>

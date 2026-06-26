@@ -20,20 +20,20 @@ export default function OrderTracking({ status, trackingNumber, orderDate }: Ord
   // Cancelled or returned status layouts
   if (status === 'cancelled') {
     return (
-      <div id="tracking-cancelled" className="border border-red-500/10 bg-red-950/10 rounded-xl p-6 text-center space-y-3">
+      <div id="tracking-cancelled" className="border border-red-100 bg-red-50 rounded-xl p-6 text-center space-y-3 font-sans">
         <XCircle className="w-10 h-10 text-red-500 mx-auto" />
-        <h4 className="text-white font-sans font-medium">Reservation Cancelled</h4>
-        <p className="text-xs text-gray-400">This reservation has been cancelled and any funds have been fully refunded.</p>
+        <h4 className="text-[#1F1F1F] font-bold uppercase tracking-tight">Reservation Cancelled</h4>
+        <p className="text-xs text-[#666666] font-medium">This reservation has been cancelled and any funds have been fully refunded.</p>
       </div>
     );
   }
 
   if (status === 'returned') {
     return (
-      <div id="tracking-returned" className="border border-amber-500/10 bg-amber-950/10 rounded-xl p-6 text-center space-y-3">
-        <RefreshCwIcon className="w-10 h-10 text-amber-500 mx-auto" />
-        <h4 className="text-white font-sans font-medium">Consignment Returned</h4>
-        <p className="text-xs text-gray-400">The consignment was returned to our headquarters and inspected.</p>
+      <div id="tracking-returned" className="border border-[#C9A227]/10 bg-[#C9A227]/5 rounded-xl p-6 text-center space-y-3 font-sans">
+        <RefreshCwIcon className="w-10 h-10 text-[#C9A227] mx-auto" />
+        <h4 className="text-[#1F1F1F] font-bold uppercase tracking-tight">Consignment Returned</h4>
+        <p className="text-xs text-[#666666] font-medium">The consignment was returned to our headquarters and inspected.</p>
       </div>
     );
   }
@@ -45,24 +45,24 @@ export default function OrderTracking({ status, trackingNumber, orderDate }: Ord
   const currentIdx = getStepIndex(status);
 
   return (
-    <div id="order-tracking-card" className="bg-white/5 border border-white/10 rounded-2xl p-6 sm:p-8 backdrop-blur-md">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-6 mb-8">
+    <div id="order-tracking-card" className="bg-[#F8F5EF] border border-[#E8E1D6] rounded-2xl p-6 sm:p-8 font-sans">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E8E1D6] pb-6 mb-8">
         <div>
-          <span className="text-[10px] font-mono tracking-widest text-amber-500 uppercase block mb-1">Transit Credentials</span>
-          <h4 className="text-sm font-mono text-white">Consignment: <span className="text-amber-100 font-bold">{trackingNumber || 'ZYL-9921-X9'}</span></h4>
+          <span className="text-[10px] font-mono tracking-[0.2em] text-[#C9A227] uppercase block mb-1 font-black">Transit Credentials</span>
+          <h4 className="text-sm font-mono text-[#1F1F1F] font-bold uppercase">Consignment: <span className="text-[#C9A227] font-black">{trackingNumber || 'ZYL-9921-X9'}</span></h4>
         </div>
         <div className="text-left sm:text-right">
-          <span className="text-[10px] font-mono tracking-widest text-amber-500 uppercase block mb-1">Reservation Date</span>
-          <p className="text-xs text-gray-300">{orderDate ? new Date(orderDate).toLocaleDateString(undefined, { dateStyle: 'medium' }) : 'June 25, 2026'}</p>
+          <span className="text-[10px] font-mono tracking-[0.2em] text-[#C9A227] uppercase block mb-1 font-black">Reservation Date</span>
+          <p className="text-xs text-[#666666] font-black uppercase">{orderDate ? new Date(orderDate).toLocaleDateString(undefined, { dateStyle: 'medium' }) : 'June 25, 2026'}</p>
         </div>
       </div>
 
       <div className="relative">
         {/* Timeline Line */}
-        <div className="absolute left-[21px] top-4 bottom-4 w-[2px] bg-white/5 hidden md:block" />
+        <div className="absolute left-[21px] top-4 bottom-4 w-[2px] bg-[#E8E1D6] hidden md:block" />
         {/* Progress Line */}
         <div 
-          className="absolute left-[21px] top-4 w-[2px] bg-gradient-to-b from-amber-500 to-amber-300 transition-all duration-1000 hidden md:block" 
+          className="absolute left-[21px] top-4 w-[2px] bg-gradient-to-b from-[#C9A227] to-[#B68D1F] transition-all duration-1000 hidden md:block" 
           style={{ height: `${(currentIdx / (STEPS.length - 1)) * 88}%` }}
         />
 
@@ -82,10 +82,10 @@ export default function OrderTracking({ status, trackingNumber, orderDate }: Ord
                 <div 
                   className={`w-11 h-11 rounded-full flex items-center justify-center border transition-all duration-500 shrink-0 ${
                     isCurrent 
-                      ? 'bg-amber-500 border-amber-400 text-black shadow-[0_0_15px_rgba(245,158,11,0.4)]' 
+                      ? 'bg-[#C9A227] border-[#C9A227] text-white shadow-md' 
                       : isCompleted 
-                        ? 'bg-white/10 border-amber-500/50 text-amber-500' 
-                        : 'bg-black/40 border-white/5 text-gray-500'
+                        ? 'bg-white border-[#C9A227]/50 text-[#C9A227]' 
+                        : 'bg-[#F8F5EF] border-[#E8E1D6] text-[#666666]'
                   }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -93,15 +93,15 @@ export default function OrderTracking({ status, trackingNumber, orderDate }: Ord
 
                 {/* Text Content */}
                 <div className="space-y-1 py-1">
-                  <h5 className={`text-sm sm:text-base font-sans font-medium tracking-wide transition-colors duration-300 ${isCompleted ? 'text-white' : 'text-gray-500'}`}>
+                  <h5 className={`text-sm sm:text-base font-sans font-bold tracking-tight uppercase transition-colors duration-300 ${isCompleted ? 'text-[#1F1F1F]' : 'text-[#666666]'}`}>
                     {step.label}
                     {isCurrent && (
-                      <span className="ml-2 text-[9px] font-mono tracking-widest bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/20 uppercase animate-pulse">
+                      <span className="ml-2 text-[9px] font-mono tracking-[0.2em] bg-[#C9A227]/10 text-[#C9A227] px-2.5 py-1 rounded-full border border-[#C9A227]/20 uppercase animate-pulse font-black">
                         Active
                       </span>
                     )}
                   </h5>
-                  <p className={`text-xs sm:text-sm font-sans font-light leading-relaxed transition-colors duration-300 ${isCompleted ? 'text-gray-300' : 'text-gray-600'}`}>
+                  <p className={`text-xs sm:text-sm font-sans font-medium leading-relaxed transition-colors duration-300 ${isCompleted ? 'text-[#666666]' : 'text-gray-400'}`}>
                     {step.desc}
                   </p>
                 </div>

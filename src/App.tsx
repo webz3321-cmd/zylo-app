@@ -418,7 +418,7 @@ export default function App() {
   ]));
 
   return (
-    <div className="min-h-screen bg-[#030303] text-gray-100 flex flex-col justify-between">
+    <div className="min-h-screen bg-[#F8F5EF] text-[#1F1F1F] flex flex-col justify-between">
       {/* GLOBAL BLURRED FLOATING HEADER */}
       <Header
         cart={cart}
@@ -480,13 +480,13 @@ export default function App() {
           <div id="catalog-anchor" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 pt-8">
             <div className="text-center space-y-2">
               <span className="text-[10px] font-mono tracking-[0.3em] text-amber-500 uppercase block">Curated Collection</span>
-              <h2 className="text-3xl sm:text-4xl font-sans tracking-tight text-white font-light">
-                Inspect Our Private <span className="italic font-serif text-amber-100">Vaults</span>
+              <h2 className="text-3xl sm:text-4xl font-sans tracking-tight text-[#1F1F1F] font-light">
+                Inspect Our Private <span className="italic font-serif text-[#C9A227]">Vaults</span>
               </h2>
-              <p className="text-xs text-gray-400 font-sans max-w-md mx-auto">
+              <p className="text-xs text-[#666666] font-sans max-w-md mx-auto">
                 Understated elegance, masterfully finished, carrying certified NFC credentials.
               </p>
-              <div className="h-[1px] w-12 bg-amber-500/50 mx-auto mt-4" />
+              <div className="h-[1px] w-12 bg-[#C9A227]/50 mx-auto mt-4" />
             </div>
 
             {/* CIRCULAR LUXURY COLLECTIONS SELECTOR */}
@@ -504,16 +504,16 @@ export default function App() {
                 >
                   <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center border transition-all duration-300 relative ${
                     selectedCategory === 'All'
-                      ? 'border-amber-500 bg-amber-500/10 shadow-[0_0_15px_rgba(245,158,11,0.2)]'
-                      : 'border-white/10 bg-white/5 hover:border-amber-500/40 hover:bg-white/10'
+                      ? 'border-[#C9A227] bg-[#C9A227]/10 shadow-[0_4px_15px_rgba(201,162,39,0.2)]'
+                      : 'border-[#E8E1D6] bg-white hover:border-[#C9A227]/40 hover:bg-[#F8F5EF]'
                   }`}>
-                    <span className="text-xs font-mono tracking-widest text-white font-bold group-hover:text-amber-400 transition-colors">ALL</span>
+                    <span className={`text-xs font-mono tracking-widest font-bold transition-colors ${selectedCategory === 'All' ? 'text-[#C9A227]' : 'text-[#1F1F1F]'}`}>ALL</span>
                     {selectedCategory === 'All' && (
-                      <span className="absolute -bottom-1 bg-amber-500 w-1.5 h-1.5 rounded-full shadow-[0_0_8px_#f59e0b]"></span>
+                      <span className="absolute -bottom-1 bg-[#C9A227] w-1.5 h-1.5 rounded-full shadow-[0_0_8px_#C9A227]"></span>
                     )}
                   </div>
                   <span className={`text-[10px] sm:text-xs font-mono tracking-wider uppercase transition-colors ${
-                    selectedCategory === 'All' ? 'text-amber-400 font-medium' : 'text-gray-400 group-hover:text-white'
+                    selectedCategory === 'All' ? 'text-[#C9A227] font-medium' : 'text-[#666666] group-hover:text-[#1F1F1F]'
                   }`}>
                     All Vaults
                   </span>
@@ -531,10 +531,10 @@ export default function App() {
                       }}
                       className="group flex flex-col items-center space-y-3 cursor-pointer text-center shrink-0 snap-center"
                     >
-                      <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden border transition-all duration-500 relative bg-black/40 ${
+                      <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden border transition-all duration-500 relative bg-white ${
                         isSelected
-                          ? 'border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.35)] scale-105'
-                          : 'border-white/10 group-hover:border-amber-500/40 group-hover:scale-105'
+                          ? 'border-[#C9A227] shadow-[0_4px_20px_rgba(201,162,39,0.35)] scale-105'
+                          : 'border-[#E8E1D6] group-hover:border-[#C9A227]/40 group-hover:scale-105'
                       }`}>
                         <img 
                           src={cat.image} 
@@ -544,15 +544,15 @@ export default function App() {
                             e.currentTarget.src = 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&q=80&w=150';
                           }}
                         />
-                        {/* Smooth dark overlay on hover / active */}
-                        <div className={`absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-300 ${isSelected ? 'bg-transparent' : ''}`} />
+                        {/* Smooth light overlay on hover / active */}
+                        <div className={`absolute inset-0 bg-white/5 group-hover:bg-transparent transition-colors duration-300 ${isSelected ? 'bg-transparent' : ''}`} />
                         
                         {isSelected && (
-                          <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-amber-500 w-1.5 h-1.5 rounded-full shadow-[0_0_8px_#f59e0b] z-20"></span>
+                          <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-[#C9A227] w-1.5 h-1.5 rounded-full shadow-[0_0_8px_#C9A227] z-20"></span>
                         )}
                       </div>
                       <span className={`text-[10px] sm:text-xs font-mono tracking-wider uppercase transition-colors ${
-                        isSelected ? 'text-amber-400 font-medium' : 'text-gray-400 group-hover:text-white'
+                        isSelected ? 'text-[#C9A227] font-medium' : 'text-[#666666] group-hover:text-[#1F1F1F]'
                       }`}>
                         {cat.name}
                       </span>
@@ -861,34 +861,34 @@ export default function App() {
           </div>
 
           {/* LUXURIOUS BRAND VALUE ACCENTS */}
-          <div className="bg-[#060606] border-t border-b border-white/5 py-16">
+          <div className="bg-white border-t border-b border-[#E8E1D6] py-16">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
               <div className="space-y-3">
-                <div className="w-12 h-12 rounded-full border border-amber-500/20 bg-amber-500/5 flex items-center justify-center mx-auto text-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.1)]">
+                <div className="w-12 h-12 rounded-full border border-[#C9A227]/20 bg-[#C9A227]/5 flex items-center justify-center mx-auto text-[#C9A227] shadow-[0_4px_15px_rgba(201,162,39,0.1)]">
                   <Shield className="w-5 h-5" />
                 </div>
-                <h4 className="text-sm font-sans font-medium text-white tracking-wide">Certified Provenance</h4>
-                <p className="text-xs text-gray-400 leading-relaxed font-sans font-light max-w-xs mx-auto">
+                <h4 className="text-sm font-sans font-medium text-[#1F1F1F] tracking-wide">Certified Provenance</h4>
+                <p className="text-xs text-[#666666] leading-relaxed font-sans font-light max-w-xs mx-auto">
                   Each masterpiece is accompanied by individually numbered certificates and encrypted NFC tags.
                 </p>
               </div>
 
               <div className="space-y-3">
-                <div className="w-12 h-12 rounded-full border border-amber-500/20 bg-amber-500/5 flex items-center justify-center mx-auto text-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.1)]">
+                <div className="w-12 h-12 rounded-full border border-[#C9A227]/20 bg-[#C9A227]/5 flex items-center justify-center mx-auto text-[#C9A227] shadow-[0_4px_15px_rgba(201,162,39,0.1)]">
                   <Compass className="w-5 h-5" />
                 </div>
-                <h4 className="text-sm font-sans font-medium text-white tracking-wide">White-Glove Courier</h4>
-                <p className="text-xs text-gray-400 leading-relaxed font-sans font-light max-w-xs mx-auto">
+                <h4 className="text-sm font-sans font-medium text-[#1F1F1F] tracking-wide">White-Glove Courier</h4>
+                <p className="text-xs text-[#666666] leading-relaxed font-sans font-light max-w-xs mx-auto">
                   Dispatched globally in secured thermal containers with continuous GPS tracking capabilities.
                 </p>
               </div>
 
               <div className="space-y-3">
-                <div className="w-12 h-12 rounded-full border border-amber-500/20 bg-amber-500/5 flex items-center justify-center mx-auto text-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.1)]">
+                <div className="w-12 h-12 rounded-full border border-[#C9A227]/20 bg-[#C9A227]/5 flex items-center justify-center mx-auto text-[#C9A227] shadow-[0_4px_15px_rgba(201,162,39,0.1)]">
                   <Sparkles className="w-5 h-5" />
                 </div>
-                <h4 className="text-sm font-sans font-medium text-white tracking-wide">Bespoke Customization</h4>
-                <p className="text-xs text-gray-400 leading-relaxed font-sans font-light max-w-xs mx-auto">
+                <h4 className="text-sm font-sans font-medium text-[#1F1F1F] tracking-wide">Bespoke Customization</h4>
+                <p className="text-xs text-[#666666] leading-relaxed font-sans font-light max-w-xs mx-auto">
                   Access standard initial personalization, leather monogramming, or private decanter engraving.
                 </p>
               </div>
@@ -1579,56 +1579,56 @@ export default function App() {
       {/* ========================================================
           GLOBAL FOOTER LAYOUT
           ======================================================== */}
-      <footer className="border-t border-white/5 bg-[#050505] py-16 text-xs text-gray-400 font-sans mt-auto">
+      <footer className="border-t border-[#E8E1D6] bg-[#F8F5EF] py-16 text-xs text-[#666666] font-sans mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-12 gap-10">
           
           {/* Col 1: Brand details (4 cols) */}
           <div className="md:col-span-4 space-y-4 text-left">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center font-serif text-black font-extrabold text-xs">
+              <div className="w-7 h-7 rounded-lg bg-[#C9A227] flex items-center justify-center font-serif text-white font-extrabold text-xs">
                 Z
               </div>
-              <span className="font-sans font-light tracking-[0.25em] text-white uppercase text-sm">
-                ZYLO <span className="text-[9px] text-amber-500 font-mono tracking-normal block -mt-0.5 font-bold">LUXURY ATELIER</span>
+              <span className="font-sans font-bold tracking-[0.25em] text-[#1F1F1F] uppercase text-sm">
+                ZYLO <span className="text-[9px] text-[#C9A227] font-mono tracking-normal block -mt-0.5 font-bold">LUXURY ATELIER</span>
               </span>
             </div>
-            <p className="leading-relaxed font-sans font-light text-gray-500 max-w-sm">
+            <p className="leading-relaxed font-sans font-medium text-[#666666] max-w-sm">
               An iconic luxury sanctuary fusing precision horology, olfactory maison craft, and Italian travel accessories with state-of-the-art secure logistics and certified NFC credentials.
             </p>
           </div>
 
           {/* Col 2: Ateliers (3 cols) */}
           <div className="md:col-span-3 space-y-3 text-left">
-            <h5 className="text-white font-mono uppercase tracking-wider text-[10px] font-bold">Explore Ateliers</h5>
-            <ul className="space-y-2 text-gray-500">
-              <li><button onClick={() => { setSelectedCategory("Timepieces"); setActiveScreen("shop"); window.scrollTo(0, 0); }} className="hover:text-amber-500 transition-colors">Fine Timepieces</button></li>
-              <li><button onClick={() => { setSelectedCategory("Fragrances"); setActiveScreen("shop"); window.scrollTo(0, 0); }} className="hover:text-amber-500 transition-colors">Maison Parfum</button></li>
-              <li><button onClick={() => { setSelectedCategory("Leather Goods"); setActiveScreen("shop"); window.scrollTo(0, 0); }} className="hover:text-amber-500 transition-colors">Signature Luggage</button></li>
-              <li><button onClick={() => { setSelectedCategory("Accessories"); setActiveScreen("shop"); window.scrollTo(0, 0); }} className="hover:text-amber-500 transition-colors">Luxury Accessories</button></li>
+            <h5 className="text-[#1F1F1F] font-mono uppercase tracking-wider text-[10px] font-bold">Explore Ateliers</h5>
+            <ul className="space-y-2 text-[#666666]">
+              <li><button onClick={() => { setSelectedCategory("Timepieces"); setActiveScreen("shop"); window.scrollTo(0, 0); }} className="hover:text-[#C9A227] transition-colors cursor-pointer">Fine Timepieces</button></li>
+              <li><button onClick={() => { setSelectedCategory("Fragrances"); setActiveScreen("shop"); window.scrollTo(0, 0); }} className="hover:text-[#C9A227] transition-colors cursor-pointer">Maison Parfum</button></li>
+              <li><button onClick={() => { setSelectedCategory("Leather Goods"); setActiveScreen("shop"); window.scrollTo(0, 0); }} className="hover:text-[#C9A227] transition-colors cursor-pointer">Signature Luggage</button></li>
+              <li><button onClick={() => { setSelectedCategory("Accessories"); setActiveScreen("shop"); window.scrollTo(0, 0); }} className="hover:text-[#C9A227] transition-colors cursor-pointer">Luxury Accessories</button></li>
             </ul>
           </div>
 
           {/* Col 3: Assistance (2 cols) */}
           <div className="md:col-span-2 space-y-3 text-left">
-            <h5 className="text-white font-mono uppercase tracking-wider text-[10px] font-bold">Assistance</h5>
-            <ul className="space-y-2 text-gray-500">
-              <li><button onClick={() => { const faq = document.getElementById('faq-section'); if(faq) faq.scrollIntoView({behavior:'smooth'}); }} className="hover:text-amber-500 transition-colors">Inquiries & FAQ</button></li>
-              <li><span className="hover:text-amber-500 transition-colors block">Secure Delivery</span></li>
-              <li><span className="hover:text-amber-500 transition-colors block">White-Glove Shipping</span></li>
-              <li><span className="hover:text-amber-500 transition-colors block">NFC Certifications</span></li>
+            <h5 className="text-[#1F1F1F] font-mono uppercase tracking-wider text-[10px] font-bold">Assistance</h5>
+            <ul className="space-y-2 text-[#666666]">
+              <li><button onClick={() => { const faq = document.getElementById('faq-section'); if(faq) faq.scrollIntoView({behavior:'smooth'}); }} className="hover:text-[#C9A227] transition-colors cursor-pointer">Inquiries & FAQ</button></li>
+              <li><span className="hover:text-[#C9A227] transition-colors block cursor-pointer">Secure Delivery</span></li>
+              <li><span className="hover:text-[#C9A227] transition-colors block cursor-pointer">White-Glove Shipping</span></li>
+              <li><span className="hover:text-[#C9A227] transition-colors block cursor-pointer">NFC Certifications</span></li>
             </ul>
           </div>
 
           {/* Col 4: Newsletter (3 cols) */}
           <div className="md:col-span-3 space-y-4 text-left">
-            <h5 className="text-white font-mono uppercase tracking-wider text-[10px] font-bold">Private Ledger</h5>
-            <p className="text-gray-500 leading-relaxed font-light">
+            <h5 className="text-[#1F1F1F] font-mono uppercase tracking-wider text-[10px] font-bold">Private Ledger</h5>
+            <p className="text-[#666666] leading-relaxed font-medium">
               Receive confidential dispatches on limited editions and seasonal allocations.
             </p>
             
             <form onSubmit={handleNewsletter} className="space-y-2">
               {newsletterSuccess && (
-                <span className="text-[10px] text-emerald-400 block">{newsletterSuccess}</span>
+                <span className="text-[10px] text-emerald-600 block font-bold">{newsletterSuccess}</span>
               )}
               <div className="flex gap-2">
                 <input
@@ -1637,11 +1637,11 @@ export default function App() {
                   placeholder="Private Email..."
                   value={newsletterEmail}
                   onChange={(e) => setNewsletterEmail(e.target.value)}
-                  className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-amber-500/50 flex-1"
+                  className="bg-white border border-[#E8E1D6] rounded-lg px-3 py-1.5 text-xs text-[#1F1F1F] placeholder-gray-400 focus:outline-none focus:border-[#C9A227]/50 flex-1"
                 />
                 <button
                   type="submit"
-                  className="px-3 py-1.5 bg-white hover:bg-gray-200 text-black font-mono text-[10px] uppercase font-bold rounded-lg cursor-pointer"
+                  className="px-3 py-1.5 bg-[#C9A227] hover:bg-[#B68D1F] text-white font-mono text-[10px] uppercase font-bold rounded-lg cursor-pointer transition-all shadow-sm"
                 >
                   Join
                 </button>
@@ -1651,12 +1651,12 @@ export default function App() {
         </div>
 
         {/* Brand trademark */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 pt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between text-gray-600 gap-4 font-mono text-[10px]">
-          <span>© 2026 ZYLO LUXURY ATELIER. INC. ALL RIGHTS RESERVED.</span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 pt-8 border-t border-[#E8E1D6] flex flex-col sm:flex-row justify-between text-gray-400 gap-4 font-mono text-[10px]">
+          <span className="font-bold">© 2026 ZYLO LUXURY ATELIER. INC. ALL RIGHTS RESERVED.</span>
           <span className="flex gap-4">
-            <span className="hover:text-amber-500 cursor-pointer">Security Ledger</span>
+            <span className="hover:text-[#C9A227] cursor-pointer transition-colors">Security Ledger</span>
             <span>•</span>
-            <span className="hover:text-amber-500 cursor-pointer">NFC Provenance</span>
+            <span className="hover:text-[#C9A227] cursor-pointer transition-colors">NFC Provenance</span>
           </span>
         </div>
       </footer>

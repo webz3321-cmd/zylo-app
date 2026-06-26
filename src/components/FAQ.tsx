@@ -46,13 +46,13 @@ export default function FAQ({ brandName = 'Zylo' }: { brandName?: string }) {
   }));
 
   return (
-    <div id="faq-section" className="w-full max-w-4xl mx-auto py-16 px-4 sm:px-6">
+    <div id="faq-section" className="w-full max-w-4xl mx-auto py-16 px-4 sm:px-6 font-sans">
       <div className="text-center mb-12">
-        <span className="text-xs tracking-[0.3em] text-amber-500 uppercase font-mono block mb-2">Inquiries & Assistance</span>
-        <h2 className="text-3xl sm:text-4xl font-sans tracking-tight text-white font-light">
-          Frequently Asked <span className="italic font-serif text-amber-100">Questions</span>
+        <span className="text-xs tracking-[0.3em] text-[#C9A227] uppercase font-mono block mb-2 font-black">Inquiries & Assistance</span>
+        <h2 className="text-3xl sm:text-4xl font-sans tracking-tight text-[#1F1F1F] font-bold uppercase">
+          Frequently Asked <span className="italic font-serif text-[#C9A227] lowercase">Questions</span>
         </h2>
-        <div className="h-[1px] w-12 bg-amber-500/50 mx-auto mt-4"></div>
+        <div className="h-[1px] w-12 bg-[#C9A227]/50 mx-auto mt-4"></div>
       </div>
 
       <div className="space-y-4">
@@ -64,28 +64,28 @@ export default function FAQ({ brandName = 'Zylo' }: { brandName?: string }) {
             <div 
               key={index}
               id={`faq-item-${index}`}
-              className="border border-white/5 bg-black/40 backdrop-blur-xl rounded-xl overflow-hidden transition-colors duration-300 hover:border-amber-500/20"
+              className="border border-[#E8E1D6] bg-white rounded-xl overflow-hidden transition-all duration-300 hover:border-[#C9A227]/30 shadow-sm"
             >
               <button
                 id={`faq-trigger-${index}`}
                 onClick={() => setActiveIndex(isOpen ? null : index)}
-                className="w-full text-left px-6 py-5 flex items-start justify-between gap-4 transition-colors"
+                className="w-full text-left px-6 py-5 flex items-start justify-between gap-4 transition-colors cursor-pointer"
               >
                 <div className="flex gap-4">
-                  <div className="p-2 rounded-lg bg-white/5 border border-white/10 text-amber-500 shrink-0">
+                  <div className="p-2.5 rounded-lg bg-[#F8F5EF] border border-[#E8E1D6] text-[#C9A227] shrink-0">
                     <Icon className="w-4 h-4" />
                   </div>
                   <div className="space-y-1">
-                    <span className="text-[10px] font-mono tracking-widest text-amber-500/70 uppercase">
+                    <span className="text-[10px] font-mono tracking-[0.2em] text-[#C9A227] uppercase font-black">
                       {item.category}
                     </span>
-                    <h3 className="text-sm sm:text-base font-sans font-medium text-white tracking-wide">
+                    <h3 className="text-sm sm:text-base font-sans font-bold text-[#1F1F1F] tracking-tight uppercase">
                       {item.question}
                     </h3>
                   </div>
                 </div>
-                <div className="p-1 rounded-full bg-white/5 text-gray-400 mt-1 shrink-0">
-                  <ChevronDown className={`w-4 h-4 transform transition-transform duration-300 ${isOpen ? 'rotate-180 text-amber-500' : ''}`} />
+                <div className="p-1.5 rounded-full bg-[#F8F5EF] text-[#666666] mt-1 shrink-0">
+                  <ChevronDown className={`w-4 h-4 transform transition-transform duration-300 ${isOpen ? 'rotate-180 text-[#C9A227]' : ''}`} />
                 </div>
               </button>
 
@@ -97,7 +97,7 @@ export default function FAQ({ brandName = 'Zylo' }: { brandName?: string }) {
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                   >
-                    <div className="px-6 pb-6 pt-1 pl-[3.75rem] border-t border-white/5 text-xs sm:text-sm text-gray-400 leading-relaxed font-sans font-light">
+                    <div className="px-6 pb-6 pt-2 pl-[4.25rem] border-t border-[#E8E1D6] text-xs sm:text-sm text-[#666666] leading-relaxed font-sans font-medium">
                       {item.answer}
                     </div>
                   </motion.div>

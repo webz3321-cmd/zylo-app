@@ -35,13 +35,13 @@ export default function Filters({
   };
 
   return (
-    <div id="filter-panel-wrapper" className="bg-white/5 border border-white/10 rounded-2xl p-5 sm:p-6 backdrop-blur-md space-y-6">
+    <div id="filter-panel-wrapper" className="bg-white border border-[#E8E1D6] rounded-2xl p-5 sm:p-6 shadow-sm space-y-6">
       {/* Search and Category block */}
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
         {/* Search input */}
         <div className="flex w-full md:max-w-md gap-2">
           <div className="relative w-full">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#666666]" />
             <input
               type="text"
               placeholder="Search our master private vaults..."
@@ -50,12 +50,12 @@ export default function Filters({
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleSearchSubmit();
               }}
-              className="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500/50"
+              className="w-full bg-[#F8F5EF] border border-[#E8E1D6] rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-[#1F1F1F] placeholder-gray-400 focus:outline-none focus:border-[#C9A227]/50"
             />
           </div>
           <button 
             onClick={handleSearchSubmit}
-            className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black text-xs font-mono tracking-widest uppercase rounded-xl transition-all font-bold cursor-pointer whitespace-nowrap shrink-0"
+            className="px-4 py-2.5 bg-[#C9A227] hover:bg-[#B68D1F] text-white text-xs font-mono tracking-widest uppercase rounded-xl transition-all font-bold cursor-pointer whitespace-nowrap shrink-0 shadow-sm"
           >
             Search
           </button>
@@ -70,10 +70,10 @@ export default function Filters({
                 setSelectedCategory(cat);
                 onFilterEnd?.();
               }}
-              className={`px-4 py-2 rounded-xl text-xs font-mono tracking-wider transition-all cursor-pointer whitespace-nowrap uppercase ${
+              className={`px-4 py-2 rounded-xl text-xs font-mono tracking-wider transition-all cursor-pointer whitespace-nowrap uppercase border ${
                 selectedCategory === cat 
-                  ? 'bg-amber-500 border border-amber-400 text-black font-semibold' 
-                  : 'bg-white/5 border border-white/5 text-gray-300 hover:border-white/10'
+                  ? 'bg-[#C9A227] border-[#C9A227] text-white font-semibold shadow-sm' 
+                  : 'bg-[#F8F5EF] border-[#E8E1D6] text-[#666666] hover:border-[#C9A227]/40 hover:text-[#1F1F1F]'
               }`}
             >
               {cat}
@@ -83,12 +83,12 @@ export default function Filters({
       </div>
 
       {/* Advanced filters line */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-white/5 items-center">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-[#E8E1D6] items-center">
         {/* Price Slider */}
         <div className="space-y-2">
-          <div className="flex justify-between text-xs font-mono text-gray-400">
+          <div className="flex justify-between text-xs font-mono text-[#666666]">
             <span>Maximum Price:</span>
-            <span className="text-white font-bold">${maxPrice}</span>
+            <span className="text-[#1F1F1F] font-bold">${maxPrice}</span>
           </div>
           <input
             type="range"
@@ -98,25 +98,25 @@ export default function Filters({
             value={maxPrice}
             onChange={(e) => setMaxPrice(Number(e.target.value))}
             onPointerUp={() => onFilterEnd?.()}
-            className="w-full h-1 bg-white/5 rounded-lg appearance-none cursor-pointer accent-amber-500 border border-white/5"
+            className="w-full h-1 bg-[#F8F5EF] rounded-lg appearance-none cursor-pointer accent-[#C9A227] border border-[#E8E1D6]"
           />
         </div>
 
         {/* Sort Select */}
         <div className="space-y-1.5">
-          <label className="text-[10px] font-mono text-gray-400 uppercase tracking-widest block">Sort Ateliers</label>
+          <label className="text-[10px] font-mono text-[#666666] uppercase tracking-widest block font-bold">Sort Ateliers</label>
           <div className="relative">
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-amber-500/50 appearance-none font-mono"
+              className="w-full bg-[#F8F5EF] border border-[#E8E1D6] rounded-xl px-4 py-2 text-xs sm:text-sm text-[#1F1F1F] focus:outline-none focus:border-[#C9A227]/50 appearance-none font-mono"
             >
               <option value="featured">⚜️ Featured</option>
               <option value="price-asc">Price: Low to High</option>
               <option value="price-desc">Price: High to Low</option>
               <option value="rating">Reviews: Highest Rating</option>
             </select>
-            <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#666666] pointer-events-none" />
           </div>
         </div>
 
@@ -125,14 +125,14 @@ export default function Filters({
           <button
             type="button"
             onClick={() => setInStockOnly(!inStockOnly)}
-            className="flex items-center gap-3 bg-black/30 hover:bg-black/50 border border-white/10 rounded-xl px-4 py-3 cursor-pointer text-xs transition-colors w-full md:w-auto"
+            className="flex items-center gap-3 bg-[#F8F5EF] hover:bg-white border border-[#E8E1D6] rounded-xl px-4 py-3 cursor-pointer text-xs transition-colors w-full md:w-auto group"
           >
             <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
-              inStockOnly ? 'bg-amber-500 border-amber-400 text-black' : 'border-white/20'
+              inStockOnly ? 'bg-[#C9A227] border-[#C9A227] text-white' : 'border-gray-300 group-hover:border-[#C9A227]/50'
             }`}>
               {inStockOnly && <Check className="w-3.5 h-3.5 stroke-[3px]" />}
             </div>
-            <span className="font-mono text-gray-300 uppercase tracking-wider">In Vault / In Stock Only</span>
+            <span className="font-mono text-[#666666] uppercase tracking-wider font-bold">In Vault / In Stock Only</span>
           </button>
         </div>
       </div>

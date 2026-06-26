@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Product, Variant, CartItem } from '../types';
 import { X, ShoppingBag, Eye, Heart, Plus, Minus, Star, ChevronRight } from 'lucide-react';
 import Reviews from './Reviews';
@@ -23,6 +23,17 @@ export default function ProductDetailsModal({
   const [selectedVariant, setSelectedVariant] = useState<Variant | undefined>(
     product.variants && product.variants.length > 0 ? product.variants[0] : undefined
   );
+  const [lensPos, setLensPos] = useState({ x: 0, y: 0 });
+  const [showLens, setShowLens] = useState(false);
+  const imageContainerRef = useRef<HTMLDivElement>(null);
+  
+  const handleZoom = (e: React.MouseEvent<HTMLDivElement>) => {
+    const { left, top, width, height } = imageContainerRef.current!.getBoundingClientRect();
+    setLensPos({
+      x: e.clientX - left,
+      y: e.clientY - top
+    });
+  };
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'details' | 'specs' | 'reviews'>('details');
 
@@ -68,43 +79,64 @@ export default function ProductDetailsModal({
     .slice(0, 3);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1F1F1F]/40 backdrop-blur-md overflow-y-auto font-sans">
       <div 
         id={`details-modal-${product.id}`}
-        className="relative w-full max-w-5xl bg-[#090909] border border-white/10 rounded-2xl overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.9)] max-h-[90vh] overflow-y-auto"
+        className="relative w-full max-w-5xl bg-white border border-[#E8E1D6] rounded-2xl overflow-hidden shadow-[0_30px_90px_rgba(0,0,0,0.15)] max-h-[90vh] overflow-y-auto"
       >
         {/* Close Button */}
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/60 border border-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
+          className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/80 border border-[#E8E1D6] text-[#666666] hover:text-[#1F1F1F] transition-all cursor-pointer shadow-sm"
         >
           <X className="w-5 h-5" />
         </button>
 
         <div className="grid grid-cols-1 lg:grid-cols-12">
-          {/* LEFT: GALLERY INSPECTOR (5 COLS) */}
+          {/* LEFT: GALLERY INSPECTOR (6 COLS) */}
           <div className="lg:col-span-6 p-6 sm:p-8 space-y-4">
-            <div className="w-full aspect-square rounded-xl overflow-hidden border border-white/10 bg-black relative group">
+            <div 
+              ref={imageContainerRef}
+              className="w-full aspect-square rounded-xl overflow-hidden border border-[#E8E1D6] bg-[#F8F5EF] relative group cursor-crosshair"
+              onMouseMove={handleZoom}
+              onMouseLeave={() => setShowLens(false)}
+              onMouseEnter={() => setShowLens(true)}
+            >
               {product.isNew && (
-                <span className="absolute top-4 left-4 z-10 text-[9px] font-mono tracking-widest bg-amber-500 text-black px-2.5 py-1 rounded-full uppercase font-bold">
+                <span className="absolute top-4 left-4 z-10 text-[9px] font-mono tracking-widest bg-[#C9A227] text-white px-2.5 py-1 rounded-full uppercase font-bold">
                   New Arrival
                 </span>
               )}
               <img 
                 src={activeImg} 
                 alt={product.name} 
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                className="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-100" 
               />
+              
+              {showLens && (
+                <div 
+                  className="absolute z-20 border-2 border-white shadow-lg rounded-full pointer-events-none overflow-hidden"
+                  style={{
+                    width: '150px',
+                    height: '150px',
+                    left: `${lensPos.x - 75}px`,
+                    top: `${lensPos.y - 75}px`,
+                    backgroundImage: `url(${activeImg})`,
+                    backgroundSize: '300% 300%',
+                    backgroundPosition: `${(lensPos.x / (imageContainerRef.current?.offsetWidth || 1)) * 100}% ${(lensPos.y / (imageContainerRef.current?.offsetHeight || 1)) * 100}%`
+                  }}
+                />
+              )}
             </div>
 
             {/* Thumbnails row */}
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-amber-500/20 max-h-[200px] flex-wrap">
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-[#C9A227]/20 max-h-[200px] flex-wrap">
               {product.images.map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setActiveImg(img)}
                   className={`w-14 h-14 sm:w-18 sm:h-18 rounded-lg overflow-hidden border transition-all cursor-pointer shrink-0 ${
-                    activeImg === img ? 'border-amber-500 scale-105 shadow-[0_0_15px_rgba(245,158,11,0.3)]' : 'border-white/10 opacity-60 hover:opacity-100'
+                    activeImg === img ? 'border-[#C9A227] scale-105 shadow-[0_5px_15px_rgba(201,162,39,0.15)]' : 'border-[#E8E1D6] opacity-60 hover:opacity-100'
                   }`}
                 >
                   <img src={img} alt={`thumbnail ${idx}`} className="w-full h-full object-cover" />
@@ -114,62 +146,62 @@ export default function ProductDetailsModal({
           </div>
 
           {/* RIGHT: EDITORIAL DETAILS (6 COLS) */}
-          <div className="lg:col-span-6 p-6 sm:p-8 space-y-6 flex flex-col justify-between border-t lg:border-t-0 lg:border-l border-white/5">
+          <div className="lg:col-span-6 p-6 sm:p-8 space-y-6 flex flex-col justify-between border-t lg:border-t-0 lg:border-l border-[#E8E1D6]">
             <div className="space-y-4">
               {/* Category & Tags */}
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono tracking-[0.2em] text-amber-500 uppercase">
+                <span className="text-[10px] font-mono tracking-[0.2em] text-[#C9A227] uppercase font-bold">
                   {product.category}
                 </span>
-                <ChevronRight className="w-3 h-3 text-gray-600" />
-                <span className="text-[10px] font-mono text-gray-400 uppercase">
+                <ChevronRight className="w-3 h-3 text-neutral-300" />
+                <span className="text-[10px] font-mono text-[#666666] uppercase">
                   {product.subCategory}
                 </span>
               </div>
 
               {/* Title & Tagline */}
               <div className="space-y-1">
-                <h2 className="text-2xl sm:text-3xl font-sans tracking-tight text-white font-light">
+                <h2 className="text-2xl sm:text-3xl font-sans tracking-tight text-[#1F1F1F] font-bold">
                   {product.name}
                 </h2>
-                <p className="text-xs sm:text-sm text-gray-400 font-sans italic font-light">
+                <p className="text-xs sm:text-sm text-[#666666] font-sans italic font-light">
                   {product.tagline}
                 </p>
               </div>
 
               {/* Ratings preview */}
               <div className="flex items-center gap-3">
-                <div className="flex text-amber-500">
-                  {[1,2,3,4,5].map(s => <Star key={s} className="w-3.5 h-3.5 fill-amber-500" />)}
+                <div className="flex text-[#C9A227]">
+                  {[1,2,3,4,5].map(s => <Star key={s} className="w-3.5 h-3.5 fill-[#C9A227]" />)}
                 </div>
-                <span className="text-xs font-mono text-gray-400">{product.rating} ({product.ratingCount} Reviews)</span>
+                <span className="text-xs font-mono text-[#666666]">{product.rating} ({product.ratingCount} Reviews)</span>
               </div>
 
               {/* Price block */}
               <div className="flex items-baseline gap-3">
-                <span className="text-2xl sm:text-3xl font-sans text-white tracking-tight font-light font-mono">
+                <span className="text-2xl sm:text-3xl font-sans text-[#1F1F1F] tracking-tight font-bold font-mono">
                   ₹{unitPrice}
                 </span>
                 {product.originalPrice && (
-                  <span className="text-sm line-through text-gray-500 font-mono">
+                  <span className="text-sm line-through text-gray-400 font-mono">
                     ₹{product.originalPrice}
                   </span>
                 )}
               </div>
 
               {/* TAB SELECTORS */}
-              <div className="flex border-b border-white/5 pt-2 text-xs font-mono text-gray-400 gap-6">
+              <div className="flex border-b border-[#E8E1D6] pt-2 text-xs font-mono text-[#666666] gap-6">
                 {['details', 'specs', 'reviews'].map(t => (
                   <button
                     key={t}
                     onClick={() => setActiveTab(t as any)}
-                    className={`pb-2 uppercase tracking-wider relative cursor-pointer ${
-                      activeTab === t ? 'text-white' : 'hover:text-white'
+                    className={`pb-2 uppercase tracking-wider relative cursor-pointer font-bold ${
+                      activeTab === t ? 'text-[#1F1F1F]' : 'hover:text-[#1F1F1F]'
                     }`}
                   >
                     {t}
                     {activeTab === t && (
-                      <span className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-amber-500" />
+                      <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#C9A227]" />
                     )}
                   </button>
                 ))}
@@ -178,17 +210,17 @@ export default function ProductDetailsModal({
               {/* TABS CONTENT */}
               <div className="py-2">
                 {activeTab === 'details' && (
-                  <p className="text-xs sm:text-sm text-gray-300 font-sans font-light leading-relaxed">
+                  <p className="text-xs sm:text-sm text-[#666666] font-sans font-medium leading-relaxed">
                     {product.description}
                   </p>
                 )}
 
                 {activeTab === 'specs' && (
-                  <div className="space-y-2 text-xs font-mono text-gray-300">
+                  <div className="space-y-2 text-xs font-mono text-[#666666]">
                     {Object.entries(product.specs).map(([k, v]) => (
-                      <div key={k} className="flex justify-between border-b border-white/5 pb-1.5 last:border-0 last:pb-0">
-                        <span className="text-gray-500">{k}:</span>
-                        <span className="text-white text-right">{v}</span>
+                      <div key={k} className="flex justify-between border-b border-[#E8E1D6] pb-1.5 last:border-0 last:pb-0">
+                        <span className="text-neutral-400 font-medium">{k}:</span>
+                        <span className="text-[#1F1F1F] text-right font-bold">{v}</span>
                       </div>
                     ))}
                   </div>
@@ -203,9 +235,9 @@ export default function ProductDetailsModal({
 
               {/* DYNAMIC VARIANTS PICKER */}
               {product.variants && product.variants.length > 0 && (
-                <div className="space-y-2 border-t border-white/5 pt-4">
-                  <span className="text-[10px] font-mono text-amber-500 tracking-widest uppercase block">
-                    {product.variantLabel || 'Choose Variant'}: <span className="text-white font-sans text-xs lowercase ml-1">{selectedVariant?.name}</span>
+                <div className="space-y-2 border-t border-[#E8E1D6] pt-4">
+                  <span className="text-[10px] font-mono text-[#C9A227] tracking-widest uppercase block font-bold">
+                    {product.variantLabel || 'Choose Variant'}: <span className="text-[#1F1F1F] font-sans text-xs lowercase ml-1">{selectedVariant?.name}</span>
                   </span>
 
                   <div className="flex flex-wrap gap-2.5">
@@ -220,7 +252,7 @@ export default function ProductDetailsModal({
                             disabled={isOutOfStock}
                             onClick={() => setSelectedVariant(v)}
                             className={`w-9 h-9 rounded-full relative flex items-center justify-center border-2 transition-all cursor-pointer ${
-                              isSelected ? 'border-amber-500 scale-108' : 'border-white/10'
+                              isSelected ? 'border-[#C9A227] scale-108' : 'border-[#E8E1D6]'
                             } ${isOutOfStock ? 'opacity-30 cursor-not-allowed' : ''}`}
                             title={v.name}
                           >
@@ -239,10 +271,10 @@ export default function ProductDetailsModal({
                           key={v.id}
                           disabled={isOutOfStock}
                           onClick={() => setSelectedVariant(v)}
-                          className={`px-4 py-2 border rounded-xl text-xs font-mono transition-all cursor-pointer ${
+                          className={`px-4 py-2 border rounded-xl text-xs font-mono transition-all cursor-pointer font-bold ${
                             isSelected 
-                              ? 'border-amber-500 bg-amber-500/10 text-white shadow-[0_0_10px_rgba(245,158,11,0.15)]' 
-                              : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/20'
+                              ? 'border-[#C9A227] bg-[#C9A227]/10 text-[#C9A227] shadow-sm' 
+                              : 'border-[#E8E1D6] bg-[#F8F5EF] text-[#666666] hover:border-[#C9A227]/40'
                           } ${isOutOfStock ? 'opacity-25 cursor-not-allowed' : ''}`}
                         >
                           {v.name}
@@ -255,33 +287,33 @@ export default function ProductDetailsModal({
             </div>
 
             {/* CONTROLS AREA */}
-            <div className="border-t border-white/5 pt-6 space-y-4">
+            <div className="border-t border-[#E8E1D6] pt-6 space-y-4">
               <div className="flex items-center justify-between">
                 {/* Stock feedback */}
-                <span className="text-xs font-mono text-gray-400">
+                <span className="text-xs font-mono text-[#666666] font-bold">
                   Status:{' '}
                   {selectedVariant && selectedVariant.stock < 5 ? (
-                    <span className="text-amber-400 font-bold uppercase tracking-wider">Only {selectedVariant.stock} left in stock</span>
+                    <span className="text-orange-500 font-bold uppercase tracking-wider underline decoration-2 underline-offset-4">Only {selectedVariant.stock} left</span>
                   ) : selectedVariant && selectedVariant.stock > 0 ? (
-                    <span className="text-emerald-400 uppercase tracking-wider">In Stock</span>
+                    <span className="text-emerald-600 uppercase tracking-wider">Available in Vault</span>
                   ) : (
-                    <span className="text-red-400 uppercase tracking-wider">Out of Stock</span>
+                    <span className="text-red-500 uppercase tracking-wider">Currently Unavailable</span>
                   )}
                 </span>
 
                 {/* Qty incrementer */}
                 {selectedVariant && selectedVariant.stock > 0 && (
-                  <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-2.5 py-1 text-xs">
+                  <div className="flex items-center gap-3 bg-[#F8F5EF] border border-[#E8E1D6] rounded-xl px-2.5 py-1 text-xs">
                     <button 
                       onClick={() => handleQtyChange(-1)}
-                      className="p-1 text-gray-400 hover:text-white cursor-pointer"
+                      className="p-1 text-[#666666] hover:text-[#1F1F1F] cursor-pointer"
                     >
                       <Minus className="w-3.5 h-3.5" />
                     </button>
-                    <span className="font-mono text-white text-sm w-4 text-center">{quantity}</span>
+                    <span className="font-mono text-[#1F1F1F] text-sm w-4 text-center font-bold">{quantity}</span>
                     <button 
                       onClick={() => handleQtyChange(1)}
-                      className="p-1 text-gray-400 hover:text-white cursor-pointer"
+                      className="p-1 text-[#666666] hover:text-[#1F1F1F] cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
                     </button>
@@ -294,16 +326,16 @@ export default function ProductDetailsModal({
                 <button
                   onClick={handleAddAction}
                   disabled={!selectedVariant || selectedVariant.stock === 0}
-                  className="flex-1 py-4 px-2 bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-50 text-white text-[10px] sm:text-xs font-mono tracking-widest uppercase rounded-xl transition-all font-bold cursor-pointer flex items-center justify-center gap-1 sm:gap-2"
+                  className="flex-1 py-4 px-2 bg-[#F8F5EF] border border-[#E8E1D6] hover:bg-white disabled:opacity-50 text-[#1F1F1F] text-[10px] sm:text-xs font-mono tracking-widest uppercase rounded-xl transition-all font-bold cursor-pointer flex items-center justify-center gap-1 sm:gap-2 shadow-sm"
                 >
-                  <ShoppingBag className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <ShoppingBag className="w-3 h-3 sm:w-4 sm:h-4 text-[#C9A227]" />
                   <span>Add to Cart</span>
                 </button>
 
                 <button
                   onClick={handleBuyNowAction}
                   disabled={!selectedVariant || selectedVariant.stock === 0}
-                  className="flex-1 py-4 px-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black text-[10px] sm:text-xs font-mono tracking-widest uppercase rounded-xl transition-all font-bold cursor-pointer flex items-center justify-center"
+                  className="flex-1 py-4 px-2 bg-[#C9A227] hover:bg-[#B68D1F] disabled:opacity-50 text-white text-[10px] sm:text-xs font-mono tracking-widest uppercase rounded-xl transition-all font-bold cursor-pointer flex items-center justify-center shadow-md shadow-[#C9A227]/20"
                 >
                   <span>Buy Now</span>
                 </button>
@@ -313,7 +345,7 @@ export default function ProductDetailsModal({
                   className={`p-4 shrink-0 border rounded-xl transition-all cursor-pointer ${
                     isInWishlist 
                       ? 'border-red-500/40 bg-red-500/10 text-red-500' 
-                      : 'border-white/10 bg-white/5 text-gray-400 hover:text-white hover:border-white/20'
+                      : 'border-[#E8E1D6] bg-[#F8F5EF] text-[#666666] hover:text-[#1F1F1F] hover:border-[#C9A227]/40'
                   }`}
                   title="Add to Wishlist"
                 >
@@ -324,29 +356,31 @@ export default function ProductDetailsModal({
           </div>
         </div>
 
-        {/* RELATED PRODUCTS */}
+        {/* Related Products ... */}
         {related.length > 0 && (
-          <div className="p-6 sm:p-8 border-t border-white/5 bg-black/40 space-y-4">
-            <h4 className="text-xs font-mono text-amber-500 tracking-widest uppercase">Related Products</h4>
+          <div className="p-6 sm:p-8 border-t border-[#E8E1D6] bg-[#F8F5EF]/50 space-y-4">
+            <h4 className="text-xs font-mono text-[#C9A227] tracking-widest uppercase font-bold">Related Curation</h4>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               {related.map((rel) => (
                 <div 
                   key={rel.id}
                   onClick={() => onSelectRelated(rel)}
-                  className="border border-white/5 bg-[#0f0f0f] rounded-xl p-3 flex gap-3 items-center cursor-pointer hover:border-amber-500/20 transition-all group"
+                  className="border border-[#E8E1D6] bg-white rounded-xl p-3 flex gap-3 items-center cursor-pointer hover:border-[#C9A227]/40 transition-all group shadow-sm"
                 >
-                  <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0 border border-white/10 bg-black">
+                  <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0 border border-[#E8E1D6] bg-[#F8F5EF]">
                     <img src={rel.images[0]} alt={rel.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                   </div>
                   <div className="min-w-0 space-y-0.5">
-                    <h5 className="text-xs font-sans font-medium text-white truncate group-hover:text-amber-300 transition-colors">{rel.name}</h5>
-                    <p className="text-[10px] text-gray-400 font-mono">₹{rel.price}</p>
+                    <h5 className="text-xs font-sans font-medium text-[#1F1F1F] truncate group-hover:text-[#C9A227] transition-colors uppercase tracking-tight">{rel.name}</h5>
+                    <p className="text-[10px] text-[#666666] font-mono font-bold">₹{rel.price}</p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
         )}
+
+        {/* Full-screen Zoom Modal */}
       </div>
     </div>
   );

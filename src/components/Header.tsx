@@ -150,19 +150,19 @@ export default function Header({
   return (
     <header className="fixed top-0 inset-x-0 z-50 flex flex-col shadow-sm transition-all duration-300">
       
-      {/* 1. TOP ANNOUNCEMENT BAR (Nykaa Man Deep Teal Style) */}
-      <div className={`w-full bg-[#003e44] text-white flex items-center border-b border-white/5 font-sans transition-all duration-300 ease-in-out origin-top ${
+      {/* 1. TOP ANNOUNCEMENT BAR (Luxury Light Style) */}
+      <div className={`w-full bg-[#F8F5EF] text-[#1F1F1F] flex items-center border-b border-[#E8E1D6] font-sans transition-all duration-300 ease-in-out origin-top ${
         isScrolled ? 'h-0 opacity-0 overflow-hidden border-b-0' : 'h-10'
       }`}>
         <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 flex justify-between items-center text-[11px] sm:text-xs font-semibold tracking-wide">
-          <div className="flex items-center gap-2 animate-pulse">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#C9A227]"></span>
             <span>Great Offers From The Best Brands</span>
           </div>
-          <div className="flex items-center gap-4 text-white/90">
+          <div className="flex items-center gap-4 text-[#1F1F1F]/90">
             <button 
               onClick={onHelpClick}
-              className="hover:text-white flex items-center gap-1 bg-transparent border-none p-0 cursor-pointer text-[11px] font-sans font-semibold"
+              className="hover:text-[#C9A227] flex items-center gap-1 bg-transparent border-none p-0 cursor-pointer text-[11px] font-sans font-semibold transition-colors"
             >
               <HelpCircle className="w-3.5 h-3.5" />
               <span>Help</span>
@@ -188,28 +188,28 @@ export default function Header({
                   <img src={logoUrl} alt={brandName} className="h-full w-auto object-contain" />
                 </div>
               ) : (
-                <ZyloLogo className="h-11 sm:h-12 md:h-13 text-black hover:text-[#003e44] transition-colors" />
+                <ZyloLogo className="h-11 sm:h-12 md:h-13 text-[#1F1F1F] hover:text-[#C9A227] transition-colors" />
               )}
             </button>
 
             {/* Desktop Center Links */}
-            <nav className="hidden lg:flex items-center gap-6 font-sans text-xs font-bold text-neutral-800">
+            <nav className="hidden lg:flex items-center gap-6 font-sans text-xs font-bold text-[#1F1F1F]">
               <button
                 onClick={() => handleCategoryClick('Luxe')}
-                className="hover:text-[#003e44] transition-colors cursor-pointer flex items-center gap-1 uppercase"
+                className="hover:text-[#C9A227] transition-colors cursor-pointer flex items-center gap-1 uppercase"
               >
                 <span>Categories</span>
                 <ChevronDown className="w-3 h-3 text-neutral-400" />
               </button>
               <button
                 onClick={onShopClick}
-                className="hover:text-[#003e44] transition-colors cursor-pointer uppercase"
+                className="hover:text-[#C9A227] transition-colors cursor-pointer uppercase"
               >
                 Brands
               </button>
               <button
                 onClick={onAboutClick}
-                className="hover:text-[#003e44] transition-colors cursor-pointer uppercase text-neutral-500 font-medium"
+                className="hover:text-[#C9A227] transition-colors cursor-pointer uppercase text-neutral-500 font-medium"
               >
                 Grooming Advice
               </button>
@@ -244,24 +244,24 @@ export default function Header({
             {/* Wishlist Icon */}
             <button
               onClick={onOpenWishlistDrawer}
-              className="p-1.5 text-neutral-600 hover:text-neutral-900 transition-colors cursor-pointer relative"
+              className="p-1.5 text-neutral-600 hover:text-[#C9A227] transition-colors cursor-pointer relative"
               title="My Registry"
             >
               <Heart className="w-5 h-5" />
               {wishlistCount > 0 && (
-                <span className="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-[#003e44] animate-pulse" />
+                <span className="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-[#C9A227] animate-pulse" />
               )}
             </button>
 
             {/* Cart Icon */}
             <button
               onClick={onOpenCartDrawer}
-              className="p-1.5 text-neutral-600 hover:text-[#003e44] transition-colors cursor-pointer relative flex items-center"
+              className="p-1.5 text-neutral-600 hover:text-[#C9A227] transition-colors cursor-pointer relative flex items-center"
               title="Shopping Cart"
             >
               <ShoppingBag className="w-5 h-5" />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1.5 bg-[#003e44] text-white text-[9px] font-bold rounded-full w-4.5 h-4.5 flex items-center justify-center font-sans">
+                <span className="absolute -top-1 -right-1.5 bg-[#C9A227] text-white text-[9px] font-bold rounded-full w-4.5 h-4.5 flex items-center justify-center font-sans">
                   {cartCount}
                 </span>
               )}
@@ -299,7 +299,7 @@ export default function Header({
             ) : (
               <button
                 onClick={onAuthClick}
-                className="px-4 py-1.5 sm:px-5 sm:py-2 bg-[#003e44] hover:bg-[#002f34] text-white text-xs font-bold tracking-wide rounded transition-all cursor-pointer font-sans shadow-sm uppercase shrink-0"
+                className="px-4 py-1.5 sm:px-5 sm:py-2 bg-[#C9A227] hover:bg-[#B68D1F] text-white text-xs font-bold tracking-wide rounded transition-all cursor-pointer font-sans shadow-sm uppercase shrink-0"
               >
                 Sign in
               </button>
@@ -336,13 +336,13 @@ export default function Header({
                     setHoveredCategory(null);
                   }}
                   onMouseEnter={() => !isScrolled && setHoveredCategory(cat)}
-                  className={`text-[11px] sm:text-[12px] font-bold tracking-wide font-sans cursor-pointer transition-all hover:text-[#003e44] uppercase ${
+                  className={`text-[11px] sm:text-[12px] font-bold tracking-wide font-sans cursor-pointer transition-all hover:text-[#C9A227] uppercase ${
                     isOffers 
-                      ? 'bg-[#003e44] text-white px-3 py-1 rounded-full text-[10px] sm:text-[11px] shadow-sm ml-auto shrink-0 flex items-center gap-1 hover:bg-neutral-800'
+                      ? 'bg-[#C9A227] text-white px-3 py-1 rounded-full text-[10px] sm:text-[11px] shadow-sm ml-auto shrink-0 flex items-center gap-1 hover:bg-[#B68D1F]'
                       : `shrink-0 border-b-2 pb-0.5 transition-all ${
                           hoveredCategory === cat 
-                            ? 'text-[#003e44] border-[#003e44]' 
-                            : 'text-neutral-600 border-transparent hover:border-[#003e44]/40'
+                            ? 'text-[#C9A227] border-[#C9A227]' 
+                            : 'text-neutral-600 border-transparent hover:border-[#C9A227]/40'
                         }`
                   }`}
                 >
@@ -360,13 +360,13 @@ export default function Header({
             <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row gap-8">
               
               {/* Left Column - Curation Banner */}
-              <div className="w-full md:w-1/4 bg-[#003e44] text-white p-6 rounded-lg flex flex-col justify-between shadow-inner min-h-[220px]">
+              <div className="w-full md:w-1/4 bg-[#F8F5EF] text-[#1F1F1F] p-6 rounded-lg flex flex-col justify-between shadow-sm border border-[#E8E1D6] min-h-[220px]">
                 <div>
-                  <span className="text-[10px] font-mono tracking-widest text-emerald-300 uppercase block mb-1">Curation Atelier</span>
+                  <span className="text-[10px] font-mono tracking-widest text-[#C9A227] uppercase block mb-1">Curation Atelier</span>
                   <h3 className="font-sans text-xl font-bold tracking-tight uppercase leading-tight">
                     {hoveredCategory}
                   </h3>
-                  <p className="text-[11px] text-white/70 mt-2 leading-relaxed font-sans">
+                  <p className="text-[11px] text-[#666666] mt-2 leading-relaxed font-sans">
                     Explore our finest boutique collection handpicked for the modern gentleman who refuses to compromise on quality and aesthetic perfection.
                   </p>
                 </div>
@@ -376,7 +376,7 @@ export default function Header({
                       handleCategoryClick(hoveredCategory);
                       setHoveredCategory(null);
                     }}
-                    className="w-full py-2 bg-white text-[#003e44] hover:bg-neutral-100 transition-colors rounded text-xs font-bold tracking-wider uppercase cursor-pointer text-center block"
+                    className="w-full py-2 bg-[#C9A227] text-white hover:bg-[#B68D1F] transition-colors rounded text-xs font-bold tracking-wider uppercase cursor-pointer text-center block"
                   >
                     View All Products
                   </button>
@@ -410,7 +410,7 @@ export default function Header({
                                 navigator.clipboard.writeText(voucher.code);
                                 alert(`Copied code: ${voucher.code}`);
                               }}
-                              className="text-[9px] font-bold text-[#003e44] hover:underline cursor-pointer"
+                              className="text-[9px] font-bold text-[#C9A227] hover:underline cursor-pointer"
                             >
                               Copy Code
                             </button>
@@ -438,7 +438,7 @@ export default function Header({
                             if (onShopClick) onShopClick();
                             setHoveredCategory(null);
                           }}
-                          className="text-[10px] text-[#003e44] font-bold underline mt-2 hover:text-[#002f34] cursor-pointer"
+                          className="text-[10px] text-[#C9A227] font-bold underline mt-2 hover:text-[#B68D1F] cursor-pointer"
                         >
                           Explore Brand Store
                         </button>
@@ -452,10 +452,10 @@ export default function Header({
                               if (onProductClick) onProductClick(prod);
                               setHoveredCategory(null);
                             }}
-                            className="group flex items-center justify-between py-2.5 px-3 bg-neutral-50 hover:bg-[#003e44]/5 border border-neutral-100 hover:border-[#003e44]/20 rounded-lg transition-all duration-200 cursor-pointer"
+                            className="group flex items-center justify-between py-2.5 px-3 bg-neutral-50 hover:bg-[#C9A227]/5 border border-neutral-100 hover:border-[#C9A227]/20 rounded-lg transition-all duration-200 cursor-pointer"
                           >
                             <div className="flex-1 min-w-0 pr-3">
-                              <h5 className="font-sans text-xs font-semibold text-neutral-800 uppercase tracking-wide truncate group-hover:text-[#003e44] transition-colors">
+                              <h5 className="font-sans text-xs font-semibold text-neutral-800 uppercase tracking-wide truncate group-hover:text-[#C9A227] transition-colors">
                                 {prod.name}
                               </h5>
                               <p className="font-sans text-[10px] text-neutral-400 truncate mt-0.5">
@@ -463,7 +463,7 @@ export default function Header({
                               </p>
                             </div>
                             <div className="shrink-0 text-right">
-                              <span className="text-[#003e44] font-bold text-xs">
+                              <span className="text-[#C9A227] font-bold text-xs">
                                 ₹{prod.price.toLocaleString('en-IN')}
                               </span>
                             </div>
@@ -482,25 +482,25 @@ export default function Header({
 
       {/* 4. PROMOTIONAL FLYOUT / TOAST BANNER */}
       {showPromoBanner && (
-        <div className="w-full bg-[#002f34] text-white py-2 px-4 shadow-lg text-center text-xs font-medium font-sans flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top duration-300">
-          <Tag className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span>Exclusive Voucher: use code <strong className="text-emerald-400 font-mono tracking-widest bg-white/10 px-2 py-0.5 rounded">GOLD20</strong> or <strong className="text-emerald-400 font-mono tracking-widest bg-white/10 px-2 py-0.5 rounded">BLACK10</strong> for up to 20% discount on luxury items.</span>
+        <div className="w-full bg-[#C9A227] text-white py-2 px-4 shadow-lg text-center text-xs font-medium font-sans flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top duration-300">
+          <Tag className="w-4 h-4 text-white shrink-0" />
+          <span>Exclusive Voucher: use code <strong className="text-white font-mono tracking-widest bg-black/10 px-2 py-0.5 rounded">GOLD20</strong> or <strong className="text-white font-mono tracking-widest bg-black/10 px-2 py-0.5 rounded">BLACK10</strong> for up to 20% discount on luxury items.</span>
         </div>
       )}
 
       {/* 5. MOBILE OVERLAY DRAWER */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-white border-t border-neutral-100 p-5 space-y-5 font-sans text-xs uppercase tracking-wider text-neutral-800 shadow-2xl animate-in slide-in-from-top duration-300 absolute top-31 left-0 right-0 z-40 max-h-[80vh] overflow-y-auto">
+        <div className="lg:hidden bg-white border-t border-neutral-100 p-5 space-y-5 font-sans text-xs uppercase tracking-wider text-[#1F1F1F] shadow-2xl animate-in slide-in-from-top duration-300 absolute top-31 left-0 right-0 z-40 max-h-[80vh] overflow-y-auto">
           
           {/* Mobile search bar */}
-          <div className="md:hidden w-full bg-neutral-100 border border-neutral-200/60 rounded-md flex items-center px-3 py-2">
+          <div className="md:hidden w-full bg-[#F8F5EF] border border-[#E8E1D6] rounded-md flex items-center px-3 py-2">
             <Search className="w-4 h-4 text-neutral-400 mr-2 shrink-0" />
             <input
               type="text"
               placeholder={`Search on ${brandName}...`}
               value={searchQuery}
               onChange={handleSearchChange}
-              className="bg-transparent border-none outline-none w-full text-xs text-neutral-900 font-sans"
+              className="bg-transparent border-none outline-none w-full text-xs text-[#1F1F1F] font-sans"
             />
           </div>
 
@@ -510,7 +510,7 @@ export default function Header({
                 onOpenWishlistDrawer();
                 setMobileMenuOpen(false);
               }}
-              className="py-3 bg-neutral-100 border border-neutral-200 text-neutral-800 rounded text-center font-bold active:bg-neutral-200 transition-colors"
+              className="py-3 bg-[#F8F5EF] border border-[#E8E1D6] text-[#1F1F1F] rounded text-center font-bold active:bg-[#E8E1D6] transition-colors"
             >
               Wishlist ({wishlistCount})
             </button>
@@ -519,7 +519,7 @@ export default function Header({
                 onOpenCartDrawer();
                 setMobileMenuOpen(false);
               }}
-              className="py-3 bg-[#003e44]/10 border border-[#003e44]/20 text-[#003e44] rounded text-center font-bold active:bg-[#003e44]/20 transition-colors"
+              className="py-3 bg-[#C9A227]/10 border border-[#C9A227]/20 text-[#C9A227] rounded text-center font-bold active:bg-[#C9A227]/20 transition-colors"
             >
               Cart ({cartCount})
             </button>
@@ -531,7 +531,7 @@ export default function Header({
                 if (onHomeClick) onHomeClick();
                 setMobileMenuOpen(false);
               }}
-              className="py-2.5 text-left text-neutral-800 font-bold hover:text-[#003e44] transition-colors border-b border-neutral-50"
+              className="py-2.5 text-left text-[#1F1F1F] font-bold hover:text-[#C9A227] transition-colors border-b border-neutral-50"
             >
               Home
             </button>
@@ -540,7 +540,7 @@ export default function Header({
                 if (onShopClick) onShopClick();
                 setMobileMenuOpen(false);
               }}
-              className="py-2.5 text-left text-[#003e44] font-extrabold hover:text-neutral-800 transition-colors border-b border-neutral-50"
+              className="py-2.5 text-left text-[#C9A227] font-extrabold hover:text-[#1F1F1F] transition-colors border-b border-neutral-50"
             >
               Brands / Shop All
             </button>
@@ -549,7 +549,7 @@ export default function Header({
                 if (onAboutClick) onAboutClick();
                 setMobileMenuOpen(false);
               }}
-              className="py-2.5 text-left text-neutral-500 font-medium hover:text-[#003e44] transition-colors"
+              className="py-2.5 text-left text-[#666666] font-medium hover:text-[#C9A227] transition-colors"
             >
               Grooming Advice (About)
             </button>
@@ -566,7 +566,7 @@ export default function Header({
                     handleCategoryClick(cat);
                     setMobileMenuOpen(false);
                   }}
-                  className="py-2 px-3 bg-neutral-50 hover:bg-[#003e44]/5 text-left text-[11px] text-neutral-700 rounded transition-colors"
+                  className="py-2 px-3 bg-[#F8F5EF] hover:bg-[#C9A227]/5 text-left text-[11px] text-[#666666] rounded transition-colors"
                 >
                   {cat}
                 </button>
@@ -583,7 +583,7 @@ export default function Header({
                       onAdminClick();
                       setMobileMenuOpen(false);
                     }}
-                    className="w-full py-3 bg-[#003e44] text-white font-bold text-center rounded active:bg-[#002f34] transition-colors uppercase"
+                    className="w-full py-3 bg-[#C9A227] text-white font-bold text-center rounded active:bg-[#B68D1F] transition-colors uppercase"
                   >
                     Admin Control Room
                   </button>
@@ -594,7 +594,7 @@ export default function Header({
                     onDashboardClick();
                     setMobileMenuOpen(false);
                   }}
-                  className="w-full py-3 bg-neutral-100 border border-neutral-200 text-neutral-800 text-center rounded font-bold active:bg-neutral-200 transition-colors uppercase"
+                  className="w-full py-3 bg-[#F8F5EF] border border-[#E8E1D6] text-[#1F1F1F] text-center rounded font-bold active:bg-[#E8E1D6] transition-colors uppercase"
                 >
                   Your Account
                 </button>
@@ -615,7 +615,7 @@ export default function Header({
                   onAuthClick();
                   setMobileMenuOpen(false);
                 }}
-                className="w-full py-3 bg-[#003e44] text-white font-bold text-center rounded active:bg-[#002f34] transition-colors uppercase"
+                className="w-full py-3 bg-[#C9A227] text-white font-bold text-center rounded active:bg-[#B68D1F] transition-colors uppercase"
               >
                 Sign In
               </button>
